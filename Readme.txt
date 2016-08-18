@@ -1,0 +1,1 @@
+ConvNetCS is a Depp Neural Network Lib in C# and .Net Based on ConvNet.JS 
