@@ -119,7 +119,7 @@
   </resheader>
   <data name="InfoLabel.Text" xml:space="preserve">
     <value>The Robot ( the blue circle ) run int the world that contain walls, poisons (the green circles) and apples (the red circles) , the robot see using 9 eyes
-The Robot need to learn that eating the poisons is a bad things and eating the apples is a good things
+The Robot need to learn by itself  that eating the poisons is a bad things and eating the apples is a good things
 Here we use an advanced reinforcement learning technique called Deep Q Learning, after a while the robot will try to avoid the poisons and run to eat the apple</value>
   </data>
 </root>
