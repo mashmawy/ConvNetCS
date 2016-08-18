@@ -1,1 +1,1 @@
-ConvNetCS is a Depp Neural Network Lib in C# and .Net Based on ConvNet.JS 
+ConvNetCS Library is a Rewrite for Convnet.js Library in C# and .Net Framework
