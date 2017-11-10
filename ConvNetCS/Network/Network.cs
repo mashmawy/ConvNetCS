@@ -24,13 +24,16 @@ namespace ConvNetCS
             {
                 act = this.Layers[i].Forward(act, is_training);
 
+                 
+
+
             }
             act = this.LossLayer.Forward(act, is_training);
             return act;
         }
 
 
-        public double Backward(int y)
+        public float Backward(int y)
         {
             var loss = this.LossLayer.Backward(y);
 
@@ -42,7 +45,7 @@ namespace ConvNetCS
             return loss;
         }
 
-        public double Backward(double[] y)
+        public float Backward(float[] y)
         {
             var loss = (this.LossLayer as RegressionLayer).Backward(y);
 
@@ -54,7 +57,7 @@ namespace ConvNetCS
             return loss;
         }
         
-        public double Backward(ClassOutput y)
+        public float Backward(ClassOutput y)
         {
             var loss = (this.LossLayer as RegressionLayer).Backward(y);
 
@@ -96,10 +99,43 @@ namespace ConvNetCS
                     maxi = i;
                 }
             }
+            
             return maxi;
         }
 
-        public int GetPrediction( double temp)
+        public List<int> GetTop5Prediction()
+        {
+            List<int> res = new List<int>(5);
+            var s = this.LossLayer;
+            var p = s.Output.W;
+            //var maxv = p[0];
+            //var maxi = 0;
+            //for (int i = 1; i < p.Length; i++)
+            //{
+            //    if (p[i] > maxv)
+            //    {
+            //        maxv = p[i];
+            //        maxi = i;
+            //    }
+            //}
+            for (int j = 0; j < 5; j++)
+            {
+                 
+               var maxi = 0;
+                var maxv = 0.0f;
+                for (int i = 0; i < p.Length; i++)
+                {
+                    if (p[i] > maxv && !res.Contains(i))
+                    {
+                        maxv = p[i];
+                        maxi = i;
+                    }
+                }
+                res.Add(maxi);
+            }
+            return res;
+        }
+        public int GetPrediction( float temp)
         {
             var s = this.LossLayer;
             var p = s.Output.W;

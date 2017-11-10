@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,106 +24,134 @@ namespace ConvNetCS
         public int InputHeight { get; set; }
         public int Stride { get; set; }
         public int Pad { get; set; }
-        public double L1_Decay_Mul { get; set; }
-        public double L2_Decay_Mul { get; set; }
+        public float L1_Decay_Mul { get; set; }
+        public float L2_Decay_Mul { get; set; }
         public int OutputWidth { get; set; }
         public int OutputHeight { get; set; }
         public Vol Biases { get; set; }
-        public List<Vol> Filters { get; set; }
+        public Vol[] Filters { get; set; }
 
         public Vol Input { get; set; }
         public Vol Output { get; set; }
 
-        public ConvLayer(int filters, int filterWidth, int filterHeight, int inputDepth, int inputHeight, int in_sy,
-            int stride, int pad, double l1_decay, double l2_decay, double bais_pref)
+        public ConvLayer(int filters, int filtersize, int inputDepth, int inputSize )
+        {
+            Init(filters, filtersize, filtersize,
+                inputDepth, inputSize, inputSize, 1, 2, 0, 1, 0.1f);
+        }
+
+        public ConvLayer(int filters, int filterWidth, int filterHeight, int inputDepth, int inputHeight,
+            int inputWidth)
+        {
+            Init(filters, filterWidth, filterHeight,
+                inputDepth, inputHeight, inputWidth, 1, 2, 0, 1, 0.1f);
+        }
+
+        public ConvLayer(int filters, int filterWidth, int filterHeight, int inputDepth,
+            int inputHeight, int inputWidth,
+            int stride, int pad, float l1_decay, float l2_decay, float bais_pref)
+        {
+            Init(filters, filterWidth, filterHeight, 
+                inputDepth, inputHeight, inputWidth, stride, pad, l1_decay, l2_decay, bais_pref);
+
+        }
+
+        private void Init(int filters, int filterWidth, int filterHeight, int inputDepth, int inputHeight, int inputWidth, int stride, int pad, float l1_decay, float l2_decay, float bais_pref)
         {
             this.OutputDepth = filters;
             this.FilterWidth = filterWidth;
             this.InputDepth = inputDepth;
-            this.InputWidth = inputHeight;
-            this.InputHeight = in_sy;
-
-
-
-
+            this.InputWidth = inputWidth;
+            this.InputHeight = inputHeight;
             this.FilterHeight = filterHeight;
-            this.Stride = stride; //or 1
-            this.Pad = pad;//0
-            this.L1_Decay_Mul = l1_decay;//0.0
-            this.L2_Decay_Mul = l2_decay;//1.0
+            this.Stride = stride;
+            this.Pad = pad;
+            this.L1_Decay_Mul = l1_decay;
+            this.L2_Decay_Mul = l2_decay;
 
-            this.OutputWidth = (this.InputWidth + this.Pad * 2 - this.FilterWidth) / this.Stride + 1;
-            this.OutputHeight = (this.InputHeight + this.Pad * 2 - this.FilterHeight) / this.Stride + 1;
+            this.OutputWidth = ((this.InputWidth + (this.Pad * 2) - this.FilterWidth) / this.Stride) + 1;
+            this.OutputHeight = ((this.InputHeight + (this.Pad * 2) - this.FilterHeight) / this.Stride) + 1;
 
-
-            var bais = bais_pref;//0.0;
-            this.Filters = new List<Vol>();
-            for (int i = 0; i < this.OutputDepth; i++)
+            var bais = bais_pref;
+            this.Filters = new Vol[filters];
+            for (int i = 0; i < filters; i++)
             {
-                this.Filters.Add(new Vol(this.FilterWidth, this.FilterHeight, this.InputDepth));
-
+                this.Filters[i] = (new Vol(this.FilterWidth, this.FilterHeight, this.InputDepth));
             }
+
             this.Biases = new Vol(1, 1, this.OutputDepth, bais);
         }
 
         public Vol Forward(Vol V, bool is_training)
         {
             this.Input = V;
-            var tempOutput = new Vol(this.OutputWidth | 0, this.OutputHeight | 0, this.OutputDepth | 0, 0.0);
+            var tempOutput = new Vol(this.OutputWidth | 0, this.OutputHeight | 0, this.OutputDepth | 0, 0.0f);
 
             var inputWidth = V.SX | 0;
             var inputHeight = V.SY | 0;
             var xy_stride = this.Stride | 0;
 
-            for (int d = 0; d < this.OutputDepth; d++)//for each output depth aka filters
+            Conv(V, tempOutput, inputWidth, inputHeight, xy_stride);
+            this.Output = tempOutput;
+            return this.Output;
+        }
+
+        private void Conv(Vol V, Vol tempOutput, int inputWidth, int inputHeight, int xy_stride)
+        {
+
+            var source = Enumerable.Range(0, this.OutputDepth);
+            var pquery = from num in source.AsParallel()
+                         select num;
+            pquery.ForAll((d) => ConvFilter(V, tempOutput, inputWidth, inputHeight, xy_stride, d));
+
+
+        }
+
+        private void ConvFilter(Vol V, Vol tempOutput, int inputWidth, int inputHeight, int xy_stride, int d)
+        {
+            var f = this.Filters[d];
+            var x = -this.Pad | 0;
+            var y = -this.Pad | 0;
+            for (int ay = 0; ay < this.OutputHeight; y += xy_stride, ay++)// for each out height
             {
-                var f = this.Filters[d];
-                var x = -this.Pad | 0;
-                var y = -this.Pad | 0;
-                for (int ay = 0; ay < this.OutputHeight; y += xy_stride, ay++)// for each out height
+                x = -this.Pad | 0;
+                for (var ax = 0; ax < this.OutputWidth; x += xy_stride, ax++) // for each out width
                 {
-                    x = -this.Pad | 0;
-                    for (var ax = 0; ax < this.OutputWidth; x += xy_stride, ax++) // for each out width
+                    // xy_stride
+                    // convolve centered at this particular location
+                    var a = 0.0;
+                    for (var fy = 0; fy < f.SY; fy++) // for each element in the filter height
                     {
-                        // xy_stride
-                        // convolve centered at this particular location
-                        var a = 0.0;
-                        for (var fy = 0; fy < f.SY; fy++) // for each element in the filter height
+                        var oy = y + fy; // coordinates in the original input array coordinates
+                        for (var fx = 0; fx < f.SX; fx++) // for each element in the filter width
                         {
-                            var oy = y + fy; // coordinates in the original input array coordinates
-                            for (var fx = 0; fx < f.SX; fx++) // for each element in the filter width
+                            //x is current width element of the output
+                            //fx is the current width element of the filter
+                            var ox = x + fx;
+                            if (oy >= 0 && oy < inputHeight && ox >= 0 && ox < inputWidth)
                             {
-                                //x is current width element of the output
-                                //fx is the current width element of the filter
-                                var ox = x + fx;
-                                if (oy >= 0 && oy < inputHeight && ox >= 0 && ox < inputWidth)
+                                for (var fd = 0; fd < f.Depth; fd++) // for each filter depth or input depth
                                 {
-                                    for (var fd = 0; fd < f.Depth; fd++) // for each filter depth or input depth
-                                    {
-                                        // multiply filter pixel by image pixel and add (shared weight filter)
-                                        // avoid function call overhead (x2) for efficiency, compromise modularity :(
-                                        //filter (fx,fy,fd) *
-                                        //input (ox,oy,fd)
-                                        a += f.W[((f.SX * fy) + fx) * f.Depth + fd] *
-                                            V.W[((inputWidth * oy) + ox) * V.Depth + fd];
-                                    }
+                                    // multiply filter pixel by image pixel and add (shared weight filter)
+                                    // avoid function call overhead (x2) for efficiency, compromise modularity :(
+                                    //filter (fx,fy,fd) *
+                                    //input (ox,oy,fd)
+                                    a += f.W[((f.SX * fy) + fx) * f.Depth + fd] *
+                                        V.W[((inputWidth * oy) + ox) * V.Depth + fd];
                                 }
                             }
                         }
-                        a += this.Biases.W[d];
-                        tempOutput.Set(ax, ay, d, a);
                     }
+                    a += this.Biases.W[d];
+                    tempOutput.Set(ax, ay, d, (float)a);
                 }
             }
-            this.Output = tempOutput;
-            return this.Output;
         }
 
         public void Backward()
         {
             var V = this.Input;
-            V.DW = new double[V.W.Length]; // zero out gradient wrt bottom data, we're about to fill it
-
+            V.DW = new float[V.W.Length];  
             var inputWidth = V.SX | 0;
             var inputHeight = V.SY | 0;
             var xy_stride = this.Stride | 0;
@@ -185,11 +214,9 @@ namespace ConvNetCS
             {
                 Params = this.Biases.W,
                 Grads = this.Biases.DW,
-                l1_decay_mul = 0.0,
-                l2_decay_mul = 0.0
-            });
-
-
+                l1_decay_mul = 0.0f,
+                l2_decay_mul = 0.0f
+            }); 
             return response;
         }
 

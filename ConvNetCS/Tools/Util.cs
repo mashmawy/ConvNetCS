@@ -11,10 +11,10 @@ namespace ConvNetCS
     {
 
         public static bool Return_V { get; set; }
-        public static double V_Val { get; set; }
+        public static float V_Val { get; set; }
 
         private static Random random = new Random(3);
-        public static double GaussRandom()
+        public static float GaussRandom()
         {
             if (Return_V)
             {
@@ -27,34 +27,34 @@ namespace ConvNetCS
 
             if (r == 0 || r > 1) return GaussRandom();
             var c = Math.Sqrt(-2 * Math.Log(r) / r);
-            V_Val = v * c;
+            V_Val =(float) (v * c);
             Return_V = true;
-            return u * c;
+            return (float)(u * c);
         }
 
-        public static double RandF(double a, double b)
+        public static float RandF(float a, float b)
         {
 
-            return random.NextDouble() * (b - a) + a;
+            return (float) random.NextDouble() * (b - a) + a;
         
         }
 
-        public static double Randi(double a, double b)
-        { 
-            return Math.Floor(  random.NextDouble() * (b - a) + a); 
+        public static float Randi(float a, float b)
+        {
+            return (float) Math.Floor(random.NextDouble() * (b - a) + a); 
         }
-        public static double Randn(double mu, double std)
+        public static float Randn(float mu, float std)
         {
             return mu + GaussRandom() * std;
         }
 
-        public static bool ArrContains(double[] arr, double elt)
+        public static bool ArrContains(float[] arr, float elt)
         {
             return arr.Contains(elt);
         }
-        public static double[] ArrUnique(double[] arr)
+        public static float[] ArrUnique(float[] arr)
         {
-            List<double> d = new List<double>();
+            List<float> d = new List<float>();
             for (int i = 0; i < arr.Length; i++)
             {
                 if (!d.Contains(arr[i]))
@@ -65,7 +65,7 @@ namespace ConvNetCS
             return d.ToArray();
         }
 
-        public static maxminResult maxmin(double[] w)
+        public static maxminResult maxmin(float[] w)
         {
             var maxv = w[0];
             var minv = w[0];
@@ -81,11 +81,11 @@ namespace ConvNetCS
         }
 
 
-        public static double[] RandPerm(int n)
+        public static float[] RandPerm(int n)
         {
             int i = n, j = 0;
-            double temp = 0.0;
-            double[] array =new double[n];
+            float temp = 0.0f;
+            float[] array =new float[n];
             for (int q = 0; q < n; q++)
 			{
                 array[q] = q;
@@ -104,7 +104,7 @@ namespace ConvNetCS
             return array;
         }
 
-        public static double WeightedSample(double[] lst, double[] probs)
+        public static float WeightedSample(float[] lst, float[] probs)
         {
             var p = RandF(0, 1);
             var cumprob = 0.0;
@@ -122,18 +122,18 @@ namespace ConvNetCS
     }
     public struct maxminResult
     {
-        public double maxi;
-        public double maxv;
-        public double mini;
-        public double minv;
-        public double dv;
+        public float maxi;
+        public float maxv;
+        public float mini;
+        public float minv;
+        public float dv;
 
     }
     [Serializable]
     public class DataToSave
     {
-        public double[][] Data { get; set; }
-        public double[] Labels { get; set; }
+        public float[][] Data { get; set; }
+        public float[] Labels { get; set; }
 
     }
 }

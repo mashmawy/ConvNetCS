@@ -11,14 +11,12 @@ namespace ConvNetCS
     {
         public int OutputDepth { get; set; }
         public int OutputWidth { get; set; }
-        public int OutputHeight { get; set; }
-        public int SX { get; set; } 
-        public int SY { get; set; }
+        public int OutputHeight { get; set; } 
         public int num_inputs { get; set; }
         public Vol Biases { get; set; }
         public List<Vol> Filters { get; set; }
 
-        public Vol in_Act { get; set; }
+        public Vol input { get; set; }
         public Vol Output { get; set; }
 
         public InputLayer( )
@@ -30,8 +28,8 @@ namespace ConvNetCS
 
         public   Vol Forward(Vol V, bool is_training)
         {
-            this.in_Act = V;
-            var A = new Vol(1, 1, this.OutputDepth, 0.0);
+            this.input = V;
+            var A = new Vol(1, 1, this.OutputDepth, 0.0f);
           
             this.Output = V;
             return this.Output;

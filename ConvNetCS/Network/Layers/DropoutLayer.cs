@@ -9,31 +9,30 @@ namespace ConvNetCS
     [Serializable]
     public class DropoutLayer : ILayer
     {
-        public double drop_prob { get; set; }  
-        public Vol in_Act { get; set; } 
+        public float drop_prob { get; set; }  
+        public Vol input { get; set; } 
         public bool[] dropped { get; set; }
 
 
-        public DropoutLayer(int in_depth, int in_sx, int in_sy, double drop_prob )
+        public DropoutLayer(int inputDepth, int inputWidth,
+            int inputHeight, float drop_prob )
         {
-            this.drop_prob = drop_prob;
-             
-
-            this.InputDepth = in_depth;
-            this.InputWidth = in_sx;
-            this.InputHeight = in_sy;
-            this.OutputWidth = in_sx;
-            this.OutputHeight = in_sy;
-            this.OutputDepth = in_depth;
+            this.drop_prob = drop_prob; 
+            this.InputDepth = inputDepth;
+            this.InputWidth = inputWidth;
+            this.InputHeight = inputHeight;
+            this.OutputWidth = inputWidth;
+            this.OutputHeight = inputHeight;
+            this.OutputDepth = inputDepth;
 
             this.dropped = new bool[this.OutputWidth * this.OutputHeight * this.OutputDepth];
         }
         public void Backward()
         {
-            var V = this.in_Act; // we need to set dw of this
+            var V = this.input; // we need to set dw of this
             var chain_grad = this.Output;
             var N = V.W.Length;
-            V.DW = new double[N]; // zero out gradient wrt data
+            V.DW = new float[N]; // zero out gradient wrt data
             for (var i = 0; i < N; i++)
             {
                 if (!(this.dropped[i]))
@@ -45,7 +44,8 @@ namespace ConvNetCS
         Random r = new Random();
         public Vol Forward(Vol V, bool is_training)
         {
-            this.in_Act = V;
+            is_training = false;
+            this.input = V;
             var V2 = V.Clone();
             var N = V.W.Length;
             if (is_training)
@@ -53,14 +53,15 @@ namespace ConvNetCS
                 // do dropout
                 for (var i = 0; i < N; i++)
                 {
-                    if (r.NextDouble() < this.drop_prob) { V2.W[i] = 0; this.dropped[i] = true; } // drop!
+                    if ((float)r.NextDouble() < this.drop_prob)
+                    { V2.W[i] = 0; this.dropped[i] = true; } // drop!
                     else { this.dropped[i] = false; }
                 }
             }
             else
             {
                 // scale the activations during prediction
-                for (var i = 0; i < N; i++) { V2.W[i] *= this.drop_prob; }
+                for (var i = 0; i < N; i++) { V2.W[i] *=0.5f; }
             }
             this.Output = V2;
             return this.Output; // dummy identity function for now

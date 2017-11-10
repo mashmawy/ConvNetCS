@@ -11,34 +11,27 @@ namespace ConvNetCS
     {
         public int OutputDepth { get; set; }
         public int OutputWidth { get; set; }
-        public int OutputHeight { get; set; }
-        public int SX { get; set; }
-        public int SY { get; set; }
+        public int OutputHeight { get; set; } 
         public int num_inputs { get; set; }
         public Vol Biases { get; set; }
         public List<Vol> Filters { get; set; }
-        public double[] es { get; set; }
-        public Vol in_Act { get; set; }
+        public float[] es { get; set; }
+        public Vol input { get; set; }
         public Vol Output { get; set; }
 
-        public ReluLayer(int in_depth, int in_sx, int in_sy)
+        public ReluLayer(int inputDepth, int inputWidth, int inputHeight)
         {
-            this.OutputDepth = in_depth;
-
-            this.OutputWidth = in_sx;
-            this.OutputHeight = in_sy;
-
-            this.InputHeight = in_sy;
-            this.InputWidth = in_sx;
-            this.InputDepth = in_depth;
-
-
-
+            this.OutputDepth = inputDepth; 
+            this.OutputWidth = inputWidth;
+            this.OutputHeight = inputHeight; 
+            this.InputHeight = inputHeight;
+            this.InputWidth = inputWidth;
+            this.InputDepth = inputDepth; 
         }
 
         public Vol Forward(Vol V, bool is_training)
         {
-            this.in_Act = V;
+            this.input = V;
             var V2 = V.Clone();
             var N = V.W.Length;
             var V2w = V2.W;
@@ -52,10 +45,10 @@ namespace ConvNetCS
 
         public void Backward()
         {
-            var V = this.in_Act; // we need to set dw of this
+            var V = this.input; // we need to set dw of this
             var V2 = this.Output;
             var N = V.W.Length;
-            V.DW = new double[N]; // zero out gradient wrt data
+            V.DW = new float[N]; // zero out gradient wrt data
             for (var i = 0; i < N; i++)
             {
                 if (V2.W[i] <= 0) V.DW[i] = 0; // threshold

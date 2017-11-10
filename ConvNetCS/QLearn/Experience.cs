@@ -12,15 +12,15 @@ namespace ConvNetCS
     // Q-learning update step
     public class Experience
     {
-        public double[] state0 { get; set; }
-        public double action0 { get; set; }
-        public double reward0 { get; set; }
-        public double[] state1 { get; set; }
+        public float[] state0 { get; set; }
+        public float action0 { get; set; }
+        public float reward0 { get; set; }
+        public float[] state1 { get; set; }
 
         public Experience()
         {
         }
-        public Experience(double[] state0, double action0, double reward0, double[] state1)
+        public Experience(float[] state0, float action0, float reward0, float[] state1)
         {
             this.state0 = state0;
             this.action0 = action0;

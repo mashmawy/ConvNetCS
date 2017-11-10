@@ -10,24 +10,24 @@ namespace DeepQLearnExample
 
     public class Vec
     {
-        public double X { get; set; }
-        public double Y { get; set; }
+        public float X { get; set; }
+        public float Y { get; set; }
 
-        public Vec(double x, double y)
+        public Vec(float x, float y)
         {
             this.X = x;
             this.Y = y;
         }
 
-        public double dist_from(Vec v)
+        public float dist_from(Vec v)
         {
-            return Math.Sqrt(Math.Pow(this.X - v.X, 2)
+            return (float) Math.Sqrt(Math.Pow(this.X - v.X, 2)
                 + Math.Pow(this.Y - v.Y, 2));
 
         }
-        public double length()
+        public float length()
         {
-            return Math.Sqrt(Math.Pow(this.X, 2) + Math.Pow(this.Y, 2));
+            return (float) Math.Sqrt(Math.Pow(this.X, 2) + Math.Pow(this.Y, 2));
 
         }
 
@@ -43,21 +43,21 @@ namespace DeepQLearnExample
         }
 
 
-        public Vec rotate(double a)
+        public Vec rotate(float a)
         {
             // CLOCKWISE
-            return new Vec(this.X * Math.Cos(a) + this.Y * Math.Sin(a),
-                           -this.X * Math.Sin(a) + this.Y * Math.Cos(a));
+            return new Vec((float)this.X * (float)Math.Cos(a) + (float)this.Y * (float)Math.Sin(a),
+                          (float)-this.X * (float)Math.Sin(a) + (float)this.Y * (float)Math.Cos(a));
         }
 
-        public void scale(double s)
+        public void scale(float s)
         {
             this.X *= s; this.Y *= s;
         }
 
         public void normalize()
         {
-            var d = this.length(); this.scale(1.0 / d);
+            var d = this.length(); this.scale(1.0f / d);
         }
 
     }
@@ -77,11 +77,11 @@ namespace DeepQLearnExample
     public class Item
     {
         public Vec p { get; set; }
-        public double type { get; set; }
-        public double rad { get; set; }
+        public float type { get; set; }
+        public float rad { get; set; }
         public int age { get; set; }
         public bool cleanup_ { get; set; }
-        public Item(double x, double y, double type)
+        public Item(float x, float y, float type)
         {
             this.p = new Vec(x, y); // position
             this.type = type;
@@ -93,11 +93,11 @@ namespace DeepQLearnExample
 
     public class intersection
     {
-        public double ua { get; set; }
-        public double ub { get; set; }
+        public float ua { get; set; }
+        public float ub { get; set; }
         public Vec up { get; set; }
 
-        public double type { get; set; }
+        public float type { get; set; }
     }
 
 
@@ -118,7 +118,7 @@ namespace DeepQLearnExample
             return null;
         }
 
-        public static intersection line_point_intersect(Vec p1, Vec p2, Vec p0, double rad)
+        public static intersection line_point_intersect(Vec p1, Vec p2, Vec p0, float rad)
         {
             var v = new Vec(p2.Y - p1.Y, -(p2.X - p1.X)); // perpendicular vector
             var d = Math.Abs((p2.X - p1.X) * (p1.Y - p0.Y) - (p1.X - p0.X) * (p2.Y - p1.Y));
@@ -128,7 +128,7 @@ namespace DeepQLearnExample
             v.normalize();
             v.scale(d);
             var up = p0.add(v);
-            double ua = 0;
+            float ua = 0;
             if (Math.Abs(p2.X - p1.X) > Math.Abs(p2.Y - p1.Y))
             {
                 ua = (up.X - p1.X) / (p2.X - p1.X);
@@ -145,7 +145,7 @@ namespace DeepQLearnExample
         }
 
         // World object contains many agents and walls and food and stuff
-        public static void util_add_box(List<Wall> lst, double x, double y, double w, double h)
+        public static void util_add_box(List<Wall> lst, float x, float y, float w, float h)
         {
             lst.Add(new Wall(new Vec(x, y), new Vec(x + w, y)));
             lst.Add(new Wall(new Vec(x + w, y), new Vec(x + w, y + h)));
@@ -161,12 +161,12 @@ namespace DeepQLearnExample
     // Eye sensor has a maximum range and senses walls
     public class Eye
     {
-        public double angle { get; set; }
+        public float angle { get; set; }
         public int max_range { get; set; }
-        public double sensed_proximity { get; set; }
-        public double sensed_type { get; set; }
+        public float sensed_proximity { get; set; }
+        public float sensed_type { get; set; }
 
-        public Eye(double angle)
+        public Eye(float angle)
         {
             this.angle = angle; // angle relative to agent its on
             this.max_range = 85;
@@ -181,18 +181,18 @@ namespace DeepQLearnExample
     {
         public Vec p { get; set; }
         public Vec op { get; set; }
-        public double angle { get; set; }
-        public List<double[]> actions { get; set; }
+        public float angle { get; set; }
+        public List<float[]> actions { get; set; }
 
-        public double rad { get; set; }
+        public float rad { get; set; }
         public List<Eye> eyes { get; set; }
         public Brain brain { get; set; }
-        public double reward_bonus { get; set; }
-        public double digestion_signal { get; set; }
+        public float reward_bonus { get; set; }
+        public float digestion_signal { get; set; }
 
-        public double rot1 { get; set; }
-        public double rot2 { get; set; }
-        public double actionix { get; set; }
+        public float rot1 { get; set; }
+        public float rot2 { get; set; }
+        public float actionix { get; set; }
 
 
         public int prevactionix { get; set; }
@@ -205,17 +205,17 @@ namespace DeepQLearnExample
             this.op = this.p; // old position
             this.angle = 0; // direction facing
 
-            this.actions = new List<double[]>();
-            this.actions.Add(new double[] { 1, 1 });
-            this.actions.Add(new double[] { 0.8, 1 });
-            this.actions.Add(new double[] { 1, 0.8 });
-            this.actions.Add(new double[] { 0.5, 0 });
-            this.actions.Add(new double[] { 0, 0.5 });
+            this.actions = new List<float[]>();
+            this.actions.Add(new float[] { 1, 1 });
+            this.actions.Add(new float[] { 0.8f, 1 });
+            this.actions.Add(new float[] { 1, 0.8f });
+            this.actions.Add(new float[] { 0.5f, 0 });
+            this.actions.Add(new float[] { 0, 0.5f });
 
             // properties
             this.rad = 10;
             this.eyes = new List<Eye>();
-            for (var k = 0; k < 9; k++) { this.eyes.Add(new Eye((k - 3) * 0.25)); }
+            for (var k = 0; k < 9; k++) { this.eyes.Add(new Eye((k - 3) * 0.25f)); }
 
             // braaain
             this.brain = new Brain();
@@ -223,12 +223,12 @@ namespace DeepQLearnExample
             //eval(spec);
             this.brain = brain;
 
-            this.reward_bonus = 0.0;
-            this.digestion_signal = 0.0;
+            this.reward_bonus = 0.0f;
+            this.digestion_signal = 0.0f;
 
             // outputs on world
-            this.rot1 = 0.0; // rotation speed of 1st wheel
-            this.rot2 = 0.0; // rotation speed of 2nd wheel
+            this.rot1 = 0.0f; // rotation speed of 1st wheel
+            this.rot2 = 0.0f; // rotation speed of 2nd wheel
 
             this.prevactionix = -1;
 
@@ -239,13 +239,13 @@ namespace DeepQLearnExample
             // in forward pass the agent simply behaves in the environment
             // create input to brain
             var num_eyes = this.eyes.Count;
-            var input_array = new double[num_eyes * 3];
+            var input_array = new float[num_eyes * 3];
             for (var i = 0; i < num_eyes; i++)
             {
                 var e = this.eyes[i];
-                input_array[i * 3] = 1.0;
-                input_array[i * 3 + 1] = 1.0;
-                input_array[i * 3 + 2] = 1.0;
+                input_array[i * 3] = 1.0f;
+                input_array[i * 3 + 1] = 1.0f;
+                input_array[i * 3 + 2] = 1.0f;
                 if (e.sensed_type != -1)
                 {
                     // sensed_type is 0 for wall, 1 for food and 2 for poison.
@@ -267,35 +267,35 @@ namespace DeepQLearnExample
         {
             // in backward pass agent learns.
             // compute reward 
-            var proximity_reward = 0.0;
+            var proximity_reward = 0.0f;
             var num_eyes = this.eyes.Count;
             for (var i = 0; i < num_eyes; i++)
             {
                 var e = this.eyes[i];
                 // agents dont like to see walls, especially up close
-                proximity_reward += e.sensed_type == 0 ? e.sensed_proximity / e.max_range : 1.0;
+                proximity_reward += e.sensed_type == 0 ? e.sensed_proximity / e.max_range : 1.0f;
             }
             proximity_reward = proximity_reward / num_eyes;
-            proximity_reward = Math.Min(1.0, proximity_reward * 2);
+            proximity_reward =(float) Math.Min(1.0f, proximity_reward * 2);
 
             // agents like to go straight forward
-            var forward_reward = 0.0;
-            if (this.actionix == 0 && proximity_reward > 0.75) forward_reward = 0.1 * proximity_reward;
+            var forward_reward = 0.0f;
+            if (this.actionix == 0 && proximity_reward > 0.75f) forward_reward = 0.1f * proximity_reward;
 
             // agents like to eat good things
             var digestion_reward = this.digestion_signal;
-            this.digestion_signal = 0.0;
+            this.digestion_signal = 0.0f;
 
             var reward = proximity_reward + forward_reward + digestion_reward;
 
             // pass to brain for learning
-            this.brain.backward( reward);
+            this.brain.backward((float)reward);
 
         }
 
 
 
-        public double oangle { get; set; }
+        public float oangle { get; set; }
     }
 
 
@@ -304,8 +304,8 @@ namespace DeepQLearnExample
     public class World
     {
         public List<Agent> agents { get; set; }
-        public double W { get; set; }
-        public double H { get; set; }
+        public float W { get; set; }
+        public float H { get; set; }
         public int clock { get; set; }
 
         public List<Wall> walls { get; set; }
@@ -412,8 +412,8 @@ namespace DeepQLearnExample
                 {
                     var e = a.eyes[ei];
                     // we have a line from p to p->eyep
-                    var eyep = new Vec(a.p.X + e.max_range * Math.Sin(a.angle + e.angle),
-                                       a.p.Y + e.max_range * Math.Cos(a.angle + e.angle));
+                    var eyep = new Vec((float)a.p.X + (float)e.max_range * (float)Math.Sin(a.angle + e.angle),
+                                       (float)a.p.Y + e.max_range * (float)Math.Cos(a.angle + e.angle));
                     var res = this.stuff_collide_(a.p, eyep, true, true);
                     if (res != null)
                     {
@@ -443,8 +443,8 @@ namespace DeepQLearnExample
                 a.oangle = a.angle; // and angle
 
                 // steer the agent according to outputs of wheel velocities
-                var v = new Vec(0, a.rad / 2.0);
-                v = v.rotate(a.angle + Math.PI / 2);
+                var v = new Vec(0, a.rad / 2.0f);
+                v = v.rotate(a.angle + (float)Math.PI / 2);
                 var w1p = a.p.add(v); // positions of wheel 1 and 2
                 var w2p = a.p.sub(v);
                 var vv = a.p.sub(w2p);
@@ -452,15 +452,15 @@ namespace DeepQLearnExample
                 var vv2 = a.p.sub(w1p);
                 vv2 = vv2.rotate(a.rot2);
                 var np = w2p.add(vv);
-                np.scale(0.5);
+                np.scale(0.5f);
                 var np2 = w1p.add(vv2);
-                np2.scale(0.5);
+                np2.scale(0.5f);
                 a.p = np.add(np2);
 
                 a.angle -= a.rot1;
-                if (a.angle < 0) a.angle += 2 * Math.PI;
+                if (a.angle < 0) a.angle += 2 * (float)Math.PI;
                 a.angle += a.rot2;
-                if (a.angle > 2 * Math.PI) a.angle -= 2 * Math.PI;
+                if (a.angle > 2 * Math.PI) a.angle -= 2 * (float)Math.PI;
 
                 // agent is trying to move from p to op. Check walls
                 var res = this.stuff_collide_(a.op, a.p, true, false);
@@ -497,8 +497,8 @@ namespace DeepQLearnExample
                         if (rescheck == null)
                         {
                             // ding! nom nom nom
-                            if (it.type == 1) a.digestion_signal += 5.0; // mmm delicious apple
-                              if (it.type == 2) a.digestion_signal += -6.0; // ewww poison
+                            if (it.type == 1) a.digestion_signal += 5.0f; // mmm delicious apple
+                              if (it.type == 2) a.digestion_signal += -6.0f; // ewww poison
                           
                             it.cleanup_ = true;
                             update_items = true;

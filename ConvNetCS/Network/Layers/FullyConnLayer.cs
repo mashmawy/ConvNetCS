@@ -3,76 +3,103 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using System.IO;
 namespace ConvNetCS
 {
     [Serializable]
     public class FullyConnLayer : ILayer
     {
         public int OutputDepth { get; set; }
-        public double L1_Decay_Mul { get; set; }
-        public double L2_Decay_Mul { get; set; }
+        public float L1_Decay_Mul { get; set; }
+        public float L2_Decay_Mul { get; set; }
         public int OutputWidth { get; set; }
         public int OutputHeight { get; set; }
         public int num_inputs { get; set; }
         public Vol Biases { get; set; }
-        public List<Vol> Filters { get; set; }
-        public int SX { get; set; }
-        public int SY { get; set; }
-        public Vol in_Act { get; set; }
+        public Vol[] Filters { get; set; } 
+        public Vol input { get; set; }
         public Vol Output { get; set; }
 
-        public FullyConnLayer(int num_neurons, int in_depth, int in_sx, int in_sy,
-              double l1_decay, double l2_decay, double bais_pref)
+        public FullyConnLayer(int num_neurons, int inputDepth,
+     int inputWidth, int inputHeight )
+        {
+            Init(num_neurons, inputDepth, inputWidth, inputHeight,
+                0.0f, 1.0f, 0.0f);
+
+        }
+
+        public FullyConnLayer(int num_neurons, int inputDepth,
+            int inputWidth, int inputHeight,
+              float l1_decay, float l2_decay, float bais_pref)
+        {
+            Init(num_neurons, inputDepth, inputWidth, inputHeight, l1_decay, l2_decay, bais_pref);
+
+        }
+
+        private void Init(int num_neurons, int inputDepth, int inputWidth, int inputHeight, float l1_decay, float l2_decay, float bais_pref)
         {
             this.OutputDepth = num_neurons;
 
-            this.InputHeight = in_sy;
-            this.InputWidth = in_sx;
-            this.InputDepth = in_depth;
+            this.InputHeight = inputHeight;
+            this.InputWidth = inputWidth;
+            this.InputDepth = inputDepth;
 
-            this.L1_Decay_Mul = l1_decay;//0.0
-            this.L2_Decay_Mul = l2_decay;//1.0
+            this.L1_Decay_Mul = l1_decay;
+            this.L2_Decay_Mul = l2_decay;
 
-            this.num_inputs = in_sx * in_sy * in_depth;
+            this.num_inputs = inputWidth * inputHeight * inputDepth;
             this.OutputWidth = 1;
             this.OutputHeight = 1;
 
 
-            var bais = bais_pref;//0.0;
-            this.Filters = new List<Vol>();
+            var bais = bais_pref;
+            this.Filters = new Vol[this.OutputDepth];
             for (int i = 0; i < this.OutputDepth; i++)
             {
-                this.Filters.Add(new Vol(1, 1, this.num_inputs));
-
+                this.Filters[i] = (new Vol(1, 1, this.num_inputs));
             }
+
             this.Biases = new Vol(1, 1, this.OutputDepth, bais);
         }
 
         public Vol Forward(Vol V, bool is_training)
         {
-            this.in_Act = V;
-            var A = new Vol(1, 1, this.OutputDepth, 0.0);
+            this.input = V;
+            var A = new Vol(1, 1, this.OutputDepth, 0.0f);
             var Vw = V.W;
-            for (var i = 0; i < this.OutputDepth; i++)
-            {
-                var a = 0.0;
-                var wi = this.Filters[i].W;
-                for (var d = 0; d < this.num_inputs; d++)
-                {
-                    a += Vw[d] * wi[d]; // for efficiency use Vols directly for now
-                }
-                a += this.Biases.W[i];
-                A.W[i] = a;
-            }
+            Product(A, Vw);
             this.Output = A;
             return this.Output;
         }
 
+        private void Product(Vol A, float[] Vw)
+        {
+
+
+            var source = Enumerable.Range(0, this.OutputDepth);
+            var pquery = from num in source.AsParallel()
+                         select num;
+            pquery.ForAll((i) => MulChannel(A, Vw, i));
+
+
+        }
+
+        private void MulChannel(Vol A, float[] Vw, int i)
+        {
+            var a = 0.0f;
+            var wi = this.Filters[i].W;
+            for (var d = 0; d < this.num_inputs; d++)
+            {
+                a += Vw[d] * wi[d];  
+            }
+            a += this.Biases.W[i];
+            A.W[i] = a;
+        }
+
         public void Backward()
         {
-            var V = this.in_Act;
-            V.DW = new double[V.W.Length]; // zero out the gradient in input Vol
+            var V = this.input;
+            V.DW = new float[V.W.Length]; // zero out the gradient in input Vol
 
             // compute gradient wrt weights and data
             for (var i = 0; i < this.OutputDepth; i++)
@@ -106,8 +133,8 @@ namespace ConvNetCS
             {
                 Params = this.Biases.W,
                 Grads = this.Biases.DW,
-                l1_decay_mul = 0.0,
-                l2_decay_mul = 0.0
+                l1_decay_mul = 0.0f,
+                l2_decay_mul = 0.0f
             });
 
 

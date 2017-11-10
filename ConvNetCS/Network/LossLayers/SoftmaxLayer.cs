@@ -17,13 +17,13 @@ namespace ConvNetCS
         public int num_inputs { get; set; }
         public Vol Biases { get; set; }
         public List<Vol> Filters { get; set; }
-        public double[] es { get; set; }
-        public Vol in_Act { get; set; }
+        public float[] es { get; set; }
+        public Vol input { get; set; }
         public Vol Output { get; set; }
 
-        public SoftmaxLayer(int in_depth, int in_sx, int in_sy)
+        public SoftmaxLayer(int inputDepth, int inputWidth, int inputHeight)
         {
-            this.num_inputs = in_sx * in_sy * in_depth;
+            this.num_inputs = inputWidth * inputHeight * inputDepth;
             this.Out_Depth = this.num_inputs;
 
             this.out_sx = 1;
@@ -35,24 +35,24 @@ namespace ConvNetCS
 
         public Vol Forward(Vol V, bool is_training)
         {
-            this.in_Act = V;
+            this.input = V;
 
-            var A = new Vol(1, 1, this.Out_Depth, 0.0);
+            var A = new Vol(1, 1, this.Out_Depth, 0.0f);
 
             // compute max activation
             var ass = V.W;
             var amax = V.W[0];
-            for (var i = 1; i < this.Out_Depth; i++)
+            for (var i = 1; i < ass.Length; i++)
             {
                 if (ass[i] > amax) amax = ass[i];
             }
 
             // compute exponentials (carefully to not blow up)
-            var es = new double[this.Out_Depth];
+            var es = new float[this.Out_Depth];
             var esum = 0.0;
             for (var i = 0; i < this.Out_Depth; i++)
             {
-                var e = Math.Exp(ass[i] - amax);
+                var e =(float) Math.Exp(ass[i] - amax);
                 esum += e;
                 es[i] = e;
             }
@@ -60,7 +60,7 @@ namespace ConvNetCS
             // normalize and output to sum to one
             for (var i = 0; i < this.Out_Depth; i++)
             {
-                es[i] /= esum;
+                es[i] /= (float)esum;
                 A.W[i] = es[i];
             }
 
@@ -69,21 +69,21 @@ namespace ConvNetCS
             return this.Output;
         }
 
-        public double Backward(int y)
+        public float Backward(int y)
         {
             // compute and accumulate gradient wrt weights and bias of this layer
-            var x = this.in_Act;
-            x.DW = new double[x.W.Length]; // zero out the gradient of input Vol
+            var x = this.input;
+            x.DW = new float[x.W.Length]; // zero out the gradient of input Vol
 
             for (var i = 0; i < this.Out_Depth; i++)
             {
                 var indicator = i == y ? 1.0 : 0.0;
-                var mul = -(indicator - this.es[i]);
+                var mul =(float) -(indicator - this.es[i]);
                 x.DW[i] = mul;
             }
 
             // loss is the class negative log likelihood
-            return -Math.Log(this.es[y]);
+            return (float) -Math.Log(this.es[y]);
         }
 
         public List<ParamsAndGrads> getParamsAndGrads()
@@ -95,7 +95,7 @@ namespace ConvNetCS
         }
 
 
-        public double Backward(double[] y)
+        public float Backward(float[] y)
         {
             throw new NotImplementedException();
         }

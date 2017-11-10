@@ -126,9 +126,9 @@ namespace DeepQLearnExample
             brain.value_net = CreateNewNetwork();
             trainer.method = TrainingMethod.sgd;
             trainer.batch_size = 64;
-            trainer.l2_decay = 0.01;
-            trainer.momentum = 0.0;
-            trainer.learning_rate = 0.001;
+            trainer.l2_decay = 0.01f;
+            trainer.momentum = 0.0f;
+            trainer.learning_rate = 0.001f;
             trainer.Net = brain.value_net;
 
 
@@ -137,11 +137,11 @@ namespace DeepQLearnExample
             brain.temporal_window = temporal_window;
             brain.experience_size = 30000;
             brain.start_learn_threshold = 1000;
-            brain.gamma = 0.7;
+            brain.gamma = 0.7f;
             brain.learning_steps_total = 200000;
             brain.learning_steps_burnin = 3000;
-            brain.epsilon_min = 0.05;
-            brain.epsilon_test_time = 0.05;
+            brain.epsilon_min = 0.05f;
+            brain.epsilon_test_time = 0.05f;
             brain.num_actions = num_actions;
             brain.net_inputs = num_inputs;
 
@@ -228,7 +228,6 @@ namespace DeepQLearnExample
                 w.items.Add(it);
             }
         }
-
         private static Network CreateNewNetwork()
         {
             var num_inputs = 27; // 9 eyes, each sees 3 numbers (wall, green, red thing proximity)
@@ -245,22 +244,13 @@ namespace DeepQLearnExample
             net.Layers.Add(il);
 
 
-            ConvLayer conv = new ConvLayer(16, 5, 5, il.OutputDepth, il.OutputWidth, il.OutputHeight, 1, 2, 0, 1, 0.1);
-            net.Layers.Add(conv);
 
-            ReluLayer rlv = new ReluLayer(conv.OutputDepth, conv.OutputWidth, conv.OutputHeight);
-            net.Layers.Add(rlv);
-
-            MaxPoolLayer pl = new MaxPoolLayer(2, 2, rlv.OutputDepth, rlv.OutputWidth, rlv.OutputHeight, 2, 0, 0);
-            net.Layers.Add(pl);
-
-            FullyConnLayer fc = new FullyConnLayer(50, pl.OutputDepth, pl.OutputWidth, pl.OutputHeight, 0, 1, 0);
+            FullyConnLayer fc = new FullyConnLayer(50, il.OutputDepth, il.OutputWidth, il.OutputHeight, 0, 1, 0);
             net.Layers.Add(fc);
 
             ReluLayer rl = new ReluLayer(fc.OutputDepth, fc.OutputWidth, fc.OutputHeight);
             net.Layers.Add(rl);
-
-
+             
 
             FullyConnLayer fc2 = new FullyConnLayer(50, rl.OutputDepth, rl.OutputWidth, rl.OutputHeight, 0, 1, 0);
             net.Layers.Add(fc2);
@@ -278,6 +268,56 @@ namespace DeepQLearnExample
             net.LossLayer = sl;
             return net;
         }
+
+        //private static Network CreateNewNetwork()
+        //{
+        //    var num_inputs = 27; // 9 eyes, each sees 3 numbers (wall, green, red thing proximity)
+        //    var num_actions = 5; // 5 possible angles agent can turn
+        //    var temporal_window = 1; // amount of temporal memory. 0 = agent lives in-the-moment :)
+        //    var network_size = num_inputs * temporal_window + num_actions * temporal_window + num_inputs;
+
+        //    Network net = new Network();
+
+        //    InputLayer il = new InputLayer();
+        //    il.OutputWidth = 1;
+        //    il.OutputHeight = 1;
+        //    il.OutputDepth = network_size;
+        //    net.Layers.Add(il);
+
+
+        //    ConvLayer conv = new ConvLayer(16, 5, 5, il.OutputDepth, il.OutputWidth, il.OutputHeight, 1, 2, 0, 1, 0.1f);
+        //    net.Layers.Add(conv);
+
+        //    ReluLayer rlv = new ReluLayer(conv.OutputDepth, conv.OutputWidth, conv.OutputHeight);
+        //    net.Layers.Add(rlv);
+
+        //    MaxPoolLayer pl = new MaxPoolLayer(2, 2, rlv.OutputDepth, rlv.OutputWidth, rlv.OutputHeight, 2, 0, 0);
+        //    net.Layers.Add(pl);
+
+        //    FullyConnLayer fc = new FullyConnLayer(50, pl.OutputDepth, pl.OutputWidth, pl.OutputHeight, 0, 1, 0);
+        //    net.Layers.Add(fc);
+
+        //    ReluLayer rl = new ReluLayer(fc.OutputDepth, fc.OutputWidth, fc.OutputHeight);
+        //    net.Layers.Add(rl);
+
+
+
+        //    FullyConnLayer fc2 = new FullyConnLayer(50, rl.OutputDepth, rl.OutputWidth, rl.OutputHeight, 0, 1, 0);
+        //    net.Layers.Add(fc2);
+
+        //    ReluLayer rl2 = new ReluLayer(fc2.OutputDepth, fc2.OutputWidth, fc2.OutputHeight);
+        //    net.Layers.Add(rl2);
+
+
+
+
+        //    FullyConnLayer fc8 = new FullyConnLayer(5, rl2.OutputDepth, rl2.OutputWidth, rl2.OutputHeight, 0, 1, 0);
+        //    net.Layers.Add(fc8);
+
+        //    RegressionLayer sl = new RegressionLayer(fc8.OutputDepth, fc8.OutputWidth, fc8.OutputHeight);
+        //    net.LossLayer = sl;
+        //    return net;
+        //}
 
     }
 }

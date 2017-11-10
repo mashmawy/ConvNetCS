@@ -24,7 +24,7 @@ namespace DrawImageExample
         
         Bitmap CurrentImage = null;
         
-        double[] image = null;
+        float[] image = null;
        
         private void LoadButton_Click(object sender, EventArgs e)
         {
@@ -33,7 +33,7 @@ namespace DrawImageExample
             CurrentImage = new Bitmap(ofd.FileName);
             pictureBox1.Image = CurrentImage;
 
-            image = new double[CurrentImage.Width * CurrentImage.Height * 3];
+            image = new float[CurrentImage.Width * CurrentImage.Height * 3];
             int c=0;
             for (int i = 0; i < CurrentImage.Width; i++)
             {
@@ -41,11 +41,11 @@ namespace DrawImageExample
                 {
                     var pix = CurrentImage.GetPixel(i, j);
 
-                    image[c] = Convert.ToDouble(pix.R);
+                    image[c] = (float)(pix.R);
                     c++;
-                    image[c] = Convert.ToDouble(pix.G) ;
+                    image[c] = (float)(pix.G);
                     c++;
-                    image[c] = Convert.ToDouble(pix.B) ;
+                    image[c] = (float)(pix.B);
                     c++;
 
                 }
@@ -73,17 +73,17 @@ namespace DrawImageExample
             trainer.Net = net;
             trainer.method = TrainingMethod.sgd;
             trainer.batch_size = 5;
-            trainer.l2_decay = 0.0;
-            trainer.momentum = 0.9;
-            trainer.learning_rate = 0.01;
+            trainer.l2_decay = 0.0f;
+            trainer.momentum = 0.9f;
+            trainer.learning_rate = 0.01f;
             for (int i = 0; i < 10000; i++)
             {
 
                 LearnStep(trainer);
                 counter++;
 
-                var W =Convert.ToDouble( CurrentImage.Width);
-                var H = Convert.ToDouble( CurrentImage.Height) ;
+                var W =(float)( CurrentImage.Width);
+                var H = (float)( CurrentImage.Height) ;
 
                 Bitmap outputImage = new Bitmap(CurrentImage.Width, CurrentImage.Height);
 
@@ -91,10 +91,10 @@ namespace DrawImageExample
                 var v = new Vol(1, 1, 2, 0);
                 for (var x = 0; x < W; x++)
                 {
-                    v.W[0] = (x - (W / 2.0)) / W;
+                    v.W[0] = (x - (W / 2.0f)) / W;
                     for (var y = 0; y < H; y++)
                     {
-                        v.W[1] = (y - (H / 2.0)) / H;
+                        v.W[1] = (y - (H / 2.0f)) / H;
 
                         var ix = ((W * y) + x) * 3;
                         var r = net.Forward(v, false);
@@ -152,8 +152,8 @@ namespace DrawImageExample
             var mod_skip_draw = 100;
             var smooth_loss = -1.0;
             var p = image;
-            var W = Convert.ToDouble( CurrentImage.Width);
-            var H = Convert.ToDouble( CurrentImage.Height);
+            var W = (float)( CurrentImage.Width);
+            var H = (float)( CurrentImage.Height);
             var loss = 0.0;
             var lossi = 0.0;
             var N = batches_per_iteration;
@@ -171,7 +171,7 @@ namespace DrawImageExample
                     var ix = (int)((W * y) + x) * 3;
 
 
-                    double[] r = new double[] { p[ix] / 255.0, p[ix + 1] / 255.0, p[ix + 2] / 255.0 }; // r g b
+                    float[] r = new float[] { p[ix] / 255.0f, p[ix + 1] / 255.0f, p[ix + 2] / 255.0f }; // r g b
 
 
 

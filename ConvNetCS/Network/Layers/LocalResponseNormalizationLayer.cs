@@ -9,15 +9,16 @@ namespace ConvNetCS
     [Serializable]
     public class LocalResponseNormalizationLayer : ILayer
     {
-        public double k { get; set; }
-        public double n { get; set; }
-        public double alpha { get; set; }
-        public double beta { get; set; }
-        public Vol in_Act { get; set; }
+        public float k { get; set; }
+        public float n { get; set; }
+        public float alpha { get; set; }
+        public float beta { get; set; }
+        public Vol input { get; set; }
         public Vol S_cache_ { get; set; }
 
 
-        public LocalResponseNormalizationLayer(int in_depth, int in_sx, int in_sy, double k, double n, double alpha, double beta)
+        public LocalResponseNormalizationLayer(int inputDepth, int inputWidth, 
+            int inputHeight, float k, float n, float alpha, float beta)
         {
             this.k = k;
             this.n = n;
@@ -28,25 +29,25 @@ namespace ConvNetCS
             this.alpha = alpha;
             this.beta = beta;
 
-            this.InputDepth = in_depth;
-            this.InputWidth = in_sx;
-            this.InputHeight = in_sy;
-            this.OutputWidth = in_sx;
-            this.OutputHeight = in_sy;
-            this.OutputDepth = in_depth;
+            this.InputDepth = inputDepth;
+            this.InputWidth = inputWidth;
+            this.InputHeight = inputHeight;
+            this.OutputWidth = inputWidth;
+            this.OutputHeight = inputHeight;
+            this.OutputDepth = inputDepth;
         }
         public void Backward()
         {
             // evaluate gradient wrt data
-            var V = this.in_Act; // we need to set dw of this
-            V.DW = new double[V.W.Length]; // zero out gradient wrt data
+            var V = this.input; // we need to set dw of this
+            V.DW = new float[V.W.Length]; // zero out gradient wrt data
             var A = this.Output; // computed in forward pass 
 
             var n2 = Math.Floor(this.n / 2);
-            DLRN(V, n2);
+            DLRN(V, (float)n2);
         }
 
-        private void DLRN(Vol V, double n2)
+        private void DLRN(Vol V, float n2)
         {
 
             var source = Enumerable.Range(0, V.SX);
@@ -56,7 +57,7 @@ namespace ConvNetCS
             
         }
 
-        private void DLRNforWidth(Vol V, double n2, int x)
+        private void DLRNforWidth(Vol V, float n2, int x)
         {
             for (var y = 0; y < V.SY; y++)
             {
@@ -76,7 +77,7 @@ namespace ConvNetCS
                         if (j == i) g += SB;
                         g /= SB2;
                         g *= chain_grad;
-                        V.Add_Grad(x, y, (int)j, g);
+                        V.Add_Grad(x, y, (int)j, (float) g);
                     }
 
                 }
@@ -85,19 +86,19 @@ namespace ConvNetCS
 
         public Vol Forward(Vol V, bool is_training)
         {
-            this.in_Act = V;
+            this.input = V;
 
             var A = V.CloneAndZero();
             this.S_cache_ = V.CloneAndZero();
             var n2 = Math.Floor(this.n / 2);
-            LRN(V, A, n2);
+            LRN(V, A, (float) n2);
 
             this.Output = A;
             return this.Output; // dummy identity function for now
 
         }
 
-        private void LRN(Vol V, Vol A, double n2)
+        private void LRN(Vol V, Vol A, float n2)
         {
             var source = Enumerable.Range(0, V.SX);
             var pquery = from num in source.AsParallel()
@@ -106,7 +107,7 @@ namespace ConvNetCS
            
         }
 
-        private void LRNforWidth(Vol V, Vol A, double n2, int x)
+        private void LRNforWidth(Vol V, Vol A, float n2, int x)
         {
             for (var y = 0; y < V.SY; y++)
             {
@@ -124,9 +125,9 @@ namespace ConvNetCS
                     }
                     den *= this.alpha / this.n;
                     den += this.k;
-                    this.S_cache_.Set(x, y, i, den); // will be useful for backprop
+                    this.S_cache_.Set(x, y, i,  (float) den); // will be useful for backprop
                     den = Math.Pow(den, this.beta);
-                    A.Set(x, y, i, ai / den);
+                    A.Set(x, y, i, (float) ai / (float) den);
                 }
             }
         }

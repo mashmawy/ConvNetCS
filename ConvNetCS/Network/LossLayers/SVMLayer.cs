@@ -17,13 +17,13 @@ namespace ConvNetCS
         public int num_inputs { get; set; }
         public Vol Biases { get; set; }
         public List<Vol> Filters { get; set; }
-        public double[] es { get; set; }
-        public Vol in_Act { get; set; }
+        public float[] es { get; set; }
+        public Vol input { get; set; }
         public Vol Output { get; set; }
 
-        public SVMLayer(int in_depth, int in_sx, int in_sy)
+        public SVMLayer(int inputDepth, int inputWidth, int inputHeight)
         {
-            this.num_inputs = in_sx * in_sy * in_depth;
+            this.num_inputs = inputWidth * inputHeight * inputDepth;
             this.Out_Depth = this.num_inputs;
 
             this.out_sx = 1;
@@ -35,28 +35,28 @@ namespace ConvNetCS
 
         public Vol Forward(Vol V, bool is_training)
         {
-            this.in_Act = V;
+            this.input = V;
             this.Output = V; // nothing to do, output raw scores
             return V;
         }
 
-        public double Backward(int y)
+        public float Backward(int y)
         {
             // compute and accumulate gradient wrt weights and bias of this layer
-            var x = this.in_Act;
-            x.DW = new double[x.W.Length]; // zero out the gradient of input Vol
+            var x = this.input;
+            x.DW = new float[x.W.Length]; // zero out the gradient of input Vol
 
             // we're using structured loss here, which means that the score
             // of the ground truth should be higher than the score of any other 
             // class, by a margin
             var yscore = x.W[y]; // score of ground truth
-            var margin = 1.0;
-            var loss = 0.0;
+            var margin = 1.0f;
+            var loss = 0.0f;
             for (var i = 0; i < this.Out_Depth; i++)
             {
                 if (y == i) { continue; }
                 var ydiff = -yscore + x.W[i] + margin;
-                if (ydiff > 0)
+                if (ydiff > 0f)
                 {
                     // violating dimension, apply loss
                     x.DW[i] += 1;
@@ -65,7 +65,7 @@ namespace ConvNetCS
                 }
             }
 
-            return loss;
+            return (float)loss;
         }
 
         public List<ParamsAndGrads> getParamsAndGrads()
@@ -77,7 +77,7 @@ namespace ConvNetCS
         }
 
 
-        public double Backward(double[] y)
+        public float Backward(float[] y)
         {
             throw new NotImplementedException();
         }

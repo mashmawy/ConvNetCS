@@ -24,7 +24,7 @@ namespace ConvNetCS
         public int start_learn_threshold { get; set; }
 
         // gamma is a crucial parameter that controls how much plan-ahead the agent does. In [0,1]
-        public double gamma { get; set; }
+        public float gamma { get; set; }
 
         // number of steps we will learn for
         public int learning_steps_total { get; set; }
@@ -33,15 +33,15 @@ namespace ConvNetCS
         public int learning_steps_burnin { get; set; }
 
         // what epsilon value do we bottom out on? 0.0 => purely deterministic policy at end
-        public double epsilon_min { get; set; }
+        public float epsilon_min { get; set; }
 
         // what epsilon to use at test time? (i.e. when learning is disabled)
-        public double epsilon_test_time { get; set; }
+        public float epsilon_test_time { get; set; }
 
         // advanced feature. Sometimes a random action should be biased towards some values
         // for example in flappy bird, we may want to choose to not flap more often
         // this better sum to 1 by the way, and be of length this.num_actions
-        public double[] random_action_distribution { get; set; }
+        public float[] random_action_distribution { get; set; }
 
         // states that go into neural net to predict optimal action look as
         // x0,a0,x1,a1,x2,a2,...xt
@@ -54,10 +54,10 @@ namespace ConvNetCS
         public int window_size { get; set; }
 
 
-        public List<double[]> state_window { get; set; }
-        public List<double> action_window { get; set; }
-        public List<double> reward_window { get; set; }
-        public List<double[]> net_window { get; set; }
+        public List<float[]> state_window { get; set; }
+        public List<float> action_window { get; set; }
+        public List<float> reward_window { get; set; }
+        public List<float[]> net_window { get; set; }
 
         public Network value_net { get; set; }
         public Trainer tdtrainer { get; set; }
@@ -67,9 +67,9 @@ namespace ConvNetCS
         public int age { get; set; }
         public int forward_passes { get; set; }
         // controls exploration exploitation tradeoff. Should be annealed over time
-        public double epsilon { get; set; }
-        public double latest_reward { get; set; }
-        public double[] last_input_array { get; set; }
+        public float epsilon { get; set; }
+        public float latest_reward { get; set; }
+        public float[] last_input_array { get; set; }
         public Window average_reward_window { get; set; }
         public Window average_loss_window { get; set; }
         public bool learning { get; set; }
@@ -80,16 +80,16 @@ namespace ConvNetCS
             this.temporal_window = 1;
             this.experience_size = 30000;
             this.start_learn_threshold = (int)Math.Floor(Math.Min(this.experience_size * 0.1, 1000));
-            this.gamma = 0.8;
+            this.gamma = 0.8f;
 
             this.learning_steps_total = 100000;
 
             // how many steps of the above to perform only random actions (in the beginning)?
             this.learning_steps_burnin = 3000;
-            this.epsilon_min = 0.05;
-            this.epsilon_test_time = 0.01;
+            this.epsilon_min = 0.05f;
+            this.epsilon_test_time = 0.01f;
 
-            this.random_action_distribution = new double[0];
+            this.random_action_distribution = new float[0];
 
 
             // states that go into neural net to predict optimal action look as
@@ -102,18 +102,18 @@ namespace ConvNetCS
             this.window_size = Math.Max(this.temporal_window, 2); // must be at least 2, but if we want more context even more
 
 
-            this.state_window = new List<double[]>(this.window_size);
+            this.state_window = new List<float[]>(this.window_size);
 
 
-            this.action_window = new List<double>(this.window_size);
+            this.action_window = new List<float>(this.window_size);
 
-            this.reward_window = new List<double>(this.window_size);
+            this.reward_window = new List<float>(this.window_size);
 
-            this.net_window = new List<double[]>(this.window_size);
+            this.net_window = new List<float[]>(this.window_size);
             for (int i = 0; i < this.window_size; i++)
             {
-                this.net_window.Add(new double[2]);
-                this.state_window.Add(new double[2]);
+                this.net_window.Add(new float[2]);
+                this.state_window.Add(new float[2]);
                 this.action_window.Add(0);
                 this.reward_window.Add(0);
             }
@@ -126,17 +126,17 @@ namespace ConvNetCS
             // various housekeeping variables
             this.age = 0; // incremented every backward()
             this.forward_passes = 0; // incremented every forward()
-            this.epsilon = 1.0; // controls exploration exploitation tradeoff. Should be annealed over time
+            this.epsilon = 1.0f; // controls exploration exploitation tradeoff. Should be annealed over time
             this.latest_reward = 0;
             this.average_reward_window = new Window(1000, 10);
             this.average_loss_window = new Window(1000, 10);
             this.learning = true;
-            this.last_input_array = new double[0];
+            this.last_input_array = new float[0];
         }
 
 
 
-        public double random_action()
+        public float random_action()
         {
             // a bit of a helper function. It returns a random action
             // we are abstracting this away because in future we may want to 
@@ -144,12 +144,12 @@ namespace ConvNetCS
             // or less likely at "rest"/default state.
             if (this.random_action_distribution.Length == 0)
             {
-                return Util.Randi(0, this.num_actions);
+                return Util.Randi(0f, (float)this.num_actions);
             }
             else
             {
                 // okay, lets do some fancier sampling:
-                var p = Util.RandF(0, 1.0);
+                var p = Util.RandF(0f, 1.0f);
                 var cumprob = 0.0;
                 for (var k = 0; k < this.num_actions; k++)
                 {
@@ -160,7 +160,7 @@ namespace ConvNetCS
             return 0;
         }
 
-        public Policy policy(double[] s)
+        public Policy policy(float[] s)
         {
             // compute the value of doing any action in this state
             // and return the argmax action and its value
@@ -176,11 +176,11 @@ namespace ConvNetCS
             return new Policy() { action = maxk, value = maxval };
         }
 
-        public double[] getNetInput(double[] xt)
+        public float[] getNetInput(float[] xt)
         {
             // return s = (x,a,x,a,x,a,xt) state vector. 
             // It's a concatenation of last window_size (x,a) pairs and current state x
-            List<double> w = new List<double>();
+            List<float> w = new List<float>();
             w.AddRange(xt); // start with current state
             // and now go backwards and append states and actions from history temporal_window times
             var n = this.window_size;
@@ -190,23 +190,23 @@ namespace ConvNetCS
                 w.AddRange(this.state_window[n - 1 - k]);
                 // action, encoded as 1-of-k indicator vector. We scale it up a bit because
                 // we dont want weight regularization to undervalue this information, as it only exists once
-                var action1ofk = new double[this.num_actions];
-                for (var q = 0; q < this.num_actions; q++) action1ofk[q] = 0.0;
-                action1ofk[(int)this.action_window[n - 1 - k]] = 1.0 * this.num_states;
+                var action1ofk = new float[this.num_actions];
+                for (var q = 0; q < this.num_actions; q++) action1ofk[q] = 0.0f;
+                action1ofk[(int)this.action_window[n - 1 - k]] = 1.0f * (float)this.num_states;
                 w.AddRange(action1ofk);
             }
             return w.ToArray();
         }
 
-        public double forward(double[] input_array)
+        public float forward(float[] input_array)
         {
             // compute forward (behavior) pass given the input neuron signals from body
             this.forward_passes += 1;
             this.last_input_array = input_array; // back this up
 
-            double[] net_input;
+            float[] net_input;
             // create network input
-            double action;
+            float action;
             if (this.forward_passes > this.temporal_window)
             {
                 // we have enough to actually do something reasonable
@@ -214,7 +214,7 @@ namespace ConvNetCS
                 if (this.learning)
                 {
                     // compute epsilon for the epsilon-greedy policy
-                    this.epsilon = Math.Min(1.0, Math.Max(this.epsilon_min, 1.0 - (double)((double)this.age - (double)this.learning_steps_burnin) / ((double)this.learning_steps_total - (double)this.learning_steps_burnin)));
+                    this.epsilon = Math.Min(1.0f, Math.Max(this.epsilon_min, 1.0f - (float)((float)this.age - (float)this.learning_steps_burnin) / ((float)this.learning_steps_total - (float)this.learning_steps_burnin)));
                 }
                 else
                 {
@@ -237,7 +237,7 @@ namespace ConvNetCS
             {
                 // pathological case that happens first few iterations 
                 // before we accumulate window_size inputs
-                net_input = new double[0];
+                net_input = new float[0];
                 action = this.random_action();
             }
 
@@ -252,7 +252,7 @@ namespace ConvNetCS
 
             return action;
         }
-        public void backward(double reward)
+        public void backward(float reward)
         {
             this.latest_reward = reward;
             this.average_reward_window.Add(reward);
@@ -292,7 +292,7 @@ namespace ConvNetCS
             // this is where the magic happens...
             if (this.experience.Count > this.start_learn_threshold)
             {
-                var avcost = 0.0;
+                var avcost = 0.0f;
                 for (var k = 0; k < this.tdtrainer.batch_size; k++)
                 {
                     var re = Util.Randi(0, this.experience.Count);
@@ -314,6 +314,6 @@ namespace ConvNetCS
     public class Policy
     {
         public int action { get; set; }
-        public double value { get; set; }
+        public float value { get; set; }
     }
 }

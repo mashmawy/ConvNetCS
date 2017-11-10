@@ -10,36 +10,36 @@ namespace ConvNetCS
     public class Trainer
     {
         public Network Net { get; set; }
-        public double learning_rate { get; set; }
-        public double l1_decay { get; set; }
-        public double l2_decay { get; set; }
+        public float learning_rate { get; set; }
+        public float l1_decay { get; set; }
+        public float l2_decay { get; set; }
         public int batch_size { get; set; }
         public TrainingMethod method { get; set; }
-        public double momentum { get; set; }
-        public double ro { get; set; }// used in adadelta
-        public double eps { get; set; }
-        public double beta1 { get; set; }
-        public double beta2 { get; set; }
+        public float momentum { get; set; }
+        public float ro { get; set; }// used in adadelta
+        public float eps { get; set; }
+        public float beta1 { get; set; }
+        public float beta2 { get; set; }
         public int k { get; set; }
-        public List<double[]> gsum { get; set; }
-        public List<double[]> xsum { get; set; }
+        public List<float[]> gsum { get; set; }
+        public List<float[]> xsum { get; set; }
         public bool Regression { get; set; }
     
         public Trainer()
         {
-            learning_rate = 0.01;
-            l1_decay = 0.0;
-            l2_decay = 0.0;
+            learning_rate = 0.01f;
+            l1_decay = 0.0f;
+            l2_decay = 0.0f;
             batch_size = 51;
             method = TrainingMethod.sgd;
-            momentum = 0.9;
-            ro = 0.95;
-            eps = 1e-8;
-            beta1 = 0.9;
-            beta2 = 0.999;
+            momentum = 0.9f;
+            ro = 0.95f;
+            eps = 1e-8f;
+            beta1 = 0.9f;
+            beta2 = 0.999f;
             k = 0;
-            gsum = new List<double[]>();
-            xsum = new List<double[]>();
+            gsum = new List<float[]>();
+            xsum = new List<float[]>();
           
         }
     
@@ -57,22 +57,22 @@ namespace ConvNetCS
 
             var cost_loss = this.Net.Backward(y);
 
-            var l2_decay_loss = 0.0;
-            var l1_decay_loss = 0.0;
+            var l2_decay_loss = 0.0f;
+            var l1_decay_loss = 0.0f;
 
             this.k++;
           
             if(this.k % this.batch_size ==0)
             {
                 var pglist = this.Net.GetParamsAndGrads();
-                if (this.gsum.Count ==0 && (this.method!=TrainingMethod.sgd || this.momentum>0.0 ) )
+                if (this.gsum.Count ==0 && (this.method!=TrainingMethod.sgd || this.momentum>0.0f ) )
                 {
                     for (int i = 0; i < pglist.Count; i++)
                     {
-                        this.gsum.Add(new double[pglist[i].Params.Length]);
+                        this.gsum.Add(new float[pglist[i].Params.Length]);
                         if (this.method==TrainingMethod.adam|| this.method == TrainingMethod.adadelta)
                         {
-                            this.xsum.Add(new double[pglist[i].Params.Length]);
+                            this.xsum.Add(new float[pglist[i].Params.Length]);
                         } 
                     }
                 }
@@ -107,14 +107,14 @@ namespace ConvNetCS
                             var biasCorr1 = gsumi[j] * (1 - Math.Pow(this.beta1, this.k)); // correct bias first moment estimate
                             var biasCorr2 = xsumi[j] * (1 - Math.Pow(this.beta2, this.k)); // correct bias second moment estimate
                             var dx = -this.learning_rate * biasCorr1 / (Math.Sqrt(biasCorr2) + this.eps);
-                            p[j] += dx;
+                            p[j] +=(float) dx;
                         }
                         else if (this.method == TrainingMethod.adagrad)
                         {
                             // adagrad update
                             gsumi[j] = gsumi[j] + gij * gij;
                             var dx = -this.learning_rate / Math.Sqrt(gsumi[j] + this.eps) * gij;
-                            p[j] += dx;
+                            p[j] += (float)dx;
                         }
                         else if (this.method == TrainingMethod.windowgrad)
                         {
@@ -123,21 +123,21 @@ namespace ConvNetCS
                             // it's also referred to as Idea #1 in Zeiler paper on Adadelta. Seems reasonable to me!
                             gsumi[j] = this.ro * gsumi[j] + (1 - this.ro) * gij * gij;
                             var dx = -this.learning_rate / Math.Sqrt(gsumi[j] + this.eps) * gij; // eps added for better conditioning
-                            p[j] += dx;
+                            p[j] += (float)dx;
                         }
                         else if (this.method == TrainingMethod.adadelta)
                         {
                             var xsumi = this.xsum[i];
                             gsumi[j] = this.ro * gsumi[j] + (1 - this.ro) * gij * gij;
                             var dx = -Math.Sqrt((xsumi[j] + this.eps) / (gsumi[j] + this.eps)) * gij;
-                            xsumi[j] = this.ro * xsumi[j] + (1 - this.ro) * dx * dx; // yes, xsum lags behind gsum by 1.
-                            p[j] += dx;
+                            xsumi[j] = this.ro * xsumi[j] + (1f - this.ro) * (float)dx * (float)dx; // yes, xsum lags behind gsum by 1.
+                            p[j] += (float)dx;
                         }
                         else if (this.method == TrainingMethod.nesterov)
                         {
                             var dx = gsumi[j];
                             gsumi[j] = gsumi[j] * this.momentum + this.learning_rate * gij;
-                            dx = this.momentum * dx - (1.0 + this.momentum) * gsumi[j];
+                            dx = this.momentum * dx - (1.0f + this.momentum) * gsumi[j];
                             p[j] += dx;
                         }
                         else
@@ -156,7 +156,7 @@ namespace ConvNetCS
                                 p[j] += -this.learning_rate * gij;
                             }
                         }
-                        g[j] = 0.0; // zero out gradient so that we can begin accumulating anew
+                        g[j] = 0.0f; // zero out gradient so that we can begin accumulating anew
          
                     } 
                 }
@@ -190,16 +190,16 @@ namespace ConvNetCS
                 this.gsum.Clear();
                 for (int i = 0; i < pglist.Count; i++)
                 {
-                    this.gsum.Add(new double[pglist[i].Params.Length]);
+                    this.gsum.Add(new float[pglist[i].Params.Length]);
                     
                 }
-                if (this.gsum.Count ==0 && (this.method!=TrainingMethod.sgd || this.momentum>0.0 ) )
+                if (this.gsum.Count ==0 && (this.method!=TrainingMethod.sgd || this.momentum>0.0f ) )
                 {
                     for (int i = 0; i < pglist.Count; i++)
                     { 
                         if (this.method==TrainingMethod.adam|| this.method == TrainingMethod.adadelta)
                         {
-                            this.xsum.Add(new double[pglist[i].Params.Length]);
+                            this.xsum.Add(new float[pglist[i].Params.Length]);
                         } 
                     }
                 }
@@ -234,14 +234,14 @@ namespace ConvNetCS
                             var biasCorr1 = gsumi[j] * (1 - Math.Pow(this.beta1, this.k)); // correct bias first moment estimate
                             var biasCorr2 = xsumi[j] * (1 - Math.Pow(this.beta2, this.k)); // correct bias second moment estimate
                             var dx = -this.learning_rate * biasCorr1 / (Math.Sqrt(biasCorr2) + this.eps);
-                            p[j] += dx;
+                            p[j] += (float)dx;
                         }
                         else if (this.method == TrainingMethod.adagrad)
                         {
                             // adagrad update
                             gsumi[j] = gsumi[j] + gij * gij;
                             var dx = -this.learning_rate / Math.Sqrt(gsumi[j] + this.eps) * gij;
-                            p[j] += dx;
+                            p[j] += (float)dx;
                         }
                         else if (this.method == TrainingMethod.windowgrad)
                         {
@@ -250,21 +250,21 @@ namespace ConvNetCS
                             // it's also referred to as Idea #1 in Zeiler paper on Adadelta. Seems reasonable to me!
                             gsumi[j] = this.ro * gsumi[j] + (1 - this.ro) * gij * gij;
                             var dx = -this.learning_rate / Math.Sqrt(gsumi[j] + this.eps) * gij; // eps added for better conditioning
-                            p[j] += dx;
+                            p[j] += (float) dx;
                         }
                         else if (this.method == TrainingMethod.adadelta)
                         {
                             var xsumi = this.xsum[i];
-                            gsumi[j] = this.ro * gsumi[j] + (1 - this.ro) * gij * gij;
+                            gsumi[j] = this.ro * gsumi[j] + (1f - this.ro) * gij * gij;
                             var dx = -Math.Sqrt((xsumi[j] + this.eps) / (gsumi[j] + this.eps)) * gij;
-                            xsumi[j] = this.ro * xsumi[j] + (1 - this.ro) * dx * dx; // yes, xsum lags behind gsum by 1.
-                            p[j] += dx;
+                            xsumi[j] = this.ro * xsumi[j] + (1f - this.ro) * (float)dx * (float)dx; // yes, xsum lags behind gsum by 1.
+                            p[j] += (float)dx;
                         }
                         else if (this.method == TrainingMethod.nesterov)
                         {
                             var dx = gsumi[j];
                             gsumi[j] = gsumi[j] * this.momentum + this.learning_rate * gij;
-                            dx = this.momentum * dx - (1.0 + this.momentum) * gsumi[j];
+                            dx = this.momentum * dx - (1.0f + this.momentum) * gsumi[j];
                             p[j] += dx;
                         }
                         else
@@ -283,19 +283,23 @@ namespace ConvNetCS
                                 p[j] += -this.learning_rate * gij;
                             }
                         }
-                        g[j] = 0.0; // zero out gradient so that we can begin accumulating anew
+                        g[j] = 0.0f; // zero out gradient so that we can begin accumulating anew
          
                     } 
                 }
             }
-            return new TrainingResult() {l2_decay_loss=l2_decay_loss, l1_decay_loss=l1_decay_loss, 
+            return new TrainingResult()
+            {
+                l2_decay_loss = (float)l2_decay_loss,
+                l1_decay_loss = (float)l1_decay_loss, 
              cost_loss=cost_loss, softmax_loss = cost_loss, loss=
-            cost_loss+l1_decay_loss+l2_decay_loss};
+           (float)cost_loss + (float)l1_decay_loss + (float)l2_decay_loss
+            };
         }
 
 
 
-        public TrainingResult Train(Vol x, double[] y)
+        public TrainingResult Train(Vol x, float[] y)
         {
             if (Net.LossLayer is RegressionLayer)
             {
@@ -326,10 +330,10 @@ namespace ConvNetCS
                 {
                     for (int i = 0; i < pglist.Count; i++)
                     {
-                        this.gsum.Add(new double[pglist[i].Params.Length]);
+                        this.gsum.Add(new float[pglist[i].Params.Length]);
                         if (this.method == TrainingMethod.adam || this.method == TrainingMethod.adadelta)
                         {
-                            this.xsum.Add(new double[pglist[i].Params.Length]);// conserve memory
+                            this.xsum.Add(new float[pglist[i].Params.Length]);// conserve memory
                         }
                       
                     }
@@ -365,14 +369,14 @@ namespace ConvNetCS
                             var biasCorr1 = gsumi[j] * (1 - Math.Pow(this.beta1, this.k)); // correct bias first moment estimate
                             var biasCorr2 = xsumi[j] * (1 - Math.Pow(this.beta2, this.k)); // correct bias second moment estimate
                             var dx = -this.learning_rate * biasCorr1 / (Math.Sqrt(biasCorr2) + this.eps);
-                            p[j] += dx;
+                            p[j] += (float)dx;
                         }
                         else if (this.method == TrainingMethod.adagrad)
                         {
                             // adagrad update
                             gsumi[j] = gsumi[j] + gij * gij;
                             var dx = -this.learning_rate / Math.Sqrt(gsumi[j] + this.eps) * gij;
-                            p[j] += dx;
+                            p[j] += (float)dx;
                         }
                         else if (this.method == TrainingMethod.windowgrad)
                         {
@@ -381,21 +385,21 @@ namespace ConvNetCS
                             // it's also referred to as Idea #1 in Zeiler paper on Adadelta. Seems reasonable to me!
                             gsumi[j] = this.ro * gsumi[j] + (1 - this.ro) * gij * gij;
                             var dx = -this.learning_rate / Math.Sqrt(gsumi[j] + this.eps) * gij; // eps added for better conditioning
-                            p[j] += dx;
+                            p[j] += (float)dx;
                         }
                         else if (this.method == TrainingMethod.adadelta)
                         {
                             var xsumi = this.xsum[i];
-                            gsumi[j] = this.ro * gsumi[j] + (1 - this.ro) * gij * gij;
+                            gsumi[j] = this.ro * gsumi[j] + (1f - this.ro) * gij * gij;
                             var dx = -Math.Sqrt((xsumi[j] + this.eps) / (gsumi[j] + this.eps)) * gij;
-                            xsumi[j] = this.ro * xsumi[j] + (1 - this.ro) * dx * dx; // yes, xsum lags behind gsum by 1.
-                            p[j] += dx;
+                            xsumi[j] = this.ro * xsumi[j] + (1f - this.ro) * (float)dx * (float)dx; // yes, xsum lags behind gsum by 1.
+                            p[j] += (float)dx;
                         }
                         else if (this.method == TrainingMethod.nesterov)
                         {
                             var dx = gsumi[j];
                             gsumi[j] = gsumi[j] * this.momentum + this.learning_rate * gij;
-                            dx = this.momentum * dx - (1.0 + this.momentum) * gsumi[j];
+                            dx = this.momentum * dx - (1.0f + this.momentum) * gsumi[j];
                             p[j] += dx;
                         }
                         else
@@ -414,29 +418,29 @@ namespace ConvNetCS
                                 p[j] += -this.learning_rate * gij;
                             }
                         }
-                        g[j] = 0.0; // zero out gradient so that we can begin accumulating anew
+                        g[j] = 0.0f; // zero out gradient so that we can begin accumulating anew
 
                     }
                 }
             }
             return new TrainingResult()
             {
-                l2_decay_loss = l2_decay_loss,
-                l1_decay_loss = l1_decay_loss,
+                l2_decay_loss = (float)l2_decay_loss,
+                l1_decay_loss = (float)l1_decay_loss,
                 cost_loss = cost_loss,
                 softmax_loss = cost_loss,
                 loss =
-                    cost_loss + l1_decay_loss + l2_decay_loss
+                    (float)cost_loss + (float)l1_decay_loss + (float)l2_decay_loss
             };
         }
     }
     public  class TrainingResult
     {
-        public double l2_decay_loss { get; set; }
-        public double l1_decay_loss { get; set; }
-        public double cost_loss { get; set; }
-        public double softmax_loss { get; set; }
-        public double loss { get; set; }
+        public float l2_decay_loss { get; set; }
+        public float l1_decay_loss { get; set; }
+        public float cost_loss { get; set; }
+        public float softmax_loss { get; set; }
+        public float loss { get; set; }
 
     }
     public enum TrainingMethod
