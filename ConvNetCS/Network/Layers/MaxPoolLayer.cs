@@ -63,7 +63,8 @@ namespace ConvNetCS
             this.input = V;
 
             var A = new Vol(this.OutputWidth, this.OutputHeight, this.OutputDepth, 0.0f);
-            Conv(V, is_training, A);
+             Conv(V, is_training, A);
+            
             this.Output = A;
             return this.Output;
         }
@@ -97,20 +98,20 @@ namespace ConvNetCS
                         {
                             var oy = y + fy;
                             var ox = x + fx;
-                            if (oy >= 0 && oy < V.SY && ox >= 0 && ox < V.SX)
+                            if (oy >= 0 && oy < V.Height && ox >= 0 && ox < V.Width)
                             {
                                 var v = V.Get(ox, oy, d);
                                 // perform max pooling and store pointers to where
                                 // the max came from. This will speed up backprop 
                                 // and can help make nice visualizations in future
-                                //  if (v > a) { a = v; winx = ox; winy = oy; }
+                                if (v > a) { a = v; winx = ox; winy = oy; }
                             }
                         }
                     }
-                  
+
                     A.Set(ax, ay, d, a);
                 }
-            } 
+            }
         }
 
         public void Backward()

@@ -17,8 +17,8 @@ namespace ConvNetCS
     [Serializable]
     public class Vol
     {
-        public int SX { get; set; }
-        public int SY { get; set; }
+        public int Width { get; set; }
+        public int Height { get; set; }
         public int Depth { get; set; }
         public float[] W { get; set; }
         [NonSerialized]
@@ -28,8 +28,8 @@ namespace ConvNetCS
          
         public Vol(float[] sx)
         {
-            this.SX = 1;
-            this.SY = 1;
+            this.Width = 1;
+            this.Height = 1;
             this.Depth = sx.Length;
             this.W = new float[this.Depth];
             this.DW = new float[this.Depth];
@@ -43,8 +43,8 @@ namespace ConvNetCS
       
         public Vol(int sx, int sy, int depth,bool normal=false)
         {
-            this.SX = sx;
-            this.SY = sy;
+            this.Width = sx;
+            this.Height = sy;
             this.Depth = depth;
             var n = sx * sy * depth;
             this.W = new float[n];
@@ -65,8 +65,8 @@ namespace ConvNetCS
 
         public Vol(int sx, int sy, int depth,float c)
         {
-            this.SX = sx;
-            this.SY = sy;
+            this.Width = sx;
+            this.Height = sy;
             this.Depth = depth;
             var n = sx * sy * depth;
             this.W = new float[n];
@@ -82,49 +82,49 @@ namespace ConvNetCS
 
         public float Get(int x, int y, int d)
         {
-            var ix = ((this.SX * y) + x) * this.Depth + d;
+            var ix = ((this.Width * y) + x) * this.Depth + d;
             return this.W[ix];
         }
 
         public void Set(int x, int y, int d,float v)
         {
-            var ix = ((this.SX * y) + x) * this.Depth + d;
+            var ix = ((this.Width * y) + x) * this.Depth + d;
               this.W[ix]=v;
         }
 
         public void Add(int x, int y, int d, float v)
         {
-            var ix = ((this.SX * y) + x) * this.Depth + d;
+            var ix = ((this.Width * y) + x) * this.Depth + d;
             this.W[ix] += v;
         }
 
         public float Get_Grad(int x, int y, int d)
         {
-            var ix = ((this.SX * y) + x) * this.Depth + d;
+            var ix = ((this.Width * y) + x) * this.Depth + d;
             return this.DW[ix];
         }
 
         public void Set_Grad(int x, int y, int d, float v)
         {
-            var ix = ((this.SX * y) + x) * this.Depth + d;
+            var ix = ((this.Width * y) + x) * this.Depth + d;
             this.DW[ix] = v;
         }
 
         public void Add_Grad(int x, int y, int d, float v)
         {
-            var ix = ((this.SX * y) + x) * this.Depth + d;
+            var ix = ((this.Width * y) + x) * this.Depth + d;
             this.DW[ix] += v;
         }
 
         public Vol CloneAndZero()
         {
-            return new Vol(this.SX, this.SY, this.Depth, 0.0f);
+            return new Vol(this.Width, this.Height, this.Depth, 0.0f);
 
         }
 
         public Vol Clone()
         {
-            var v= new Vol(this.SX, this.SY, this.Depth, 0.0f);
+            var v= new Vol(this.Width, this.Height, this.Depth, 0.0f);
             var n = this.W.Length;
             for (int i = 0; i < n; i++)
             {
@@ -170,14 +170,14 @@ namespace ConvNetCS
 
 
             Vol W;
-            if (corp!= V.SX || dx !=0 || dy!=0)
+            if (corp!= V.Width || dx !=0 || dy!=0)
             {
                 W = new Vol(corp, corp, V.Depth, 0.0f);
                 for (int x = 0; x < corp; x++)
                 {
                     for (int y = 0; y < corp; y++)
                     {
-                        if (x + dx < 0 || x + dx >= V.SX || y + dy < 0 || y + dy >= V.SY) continue;
+                        if (x + dx < 0 || x + dx >= V.Width || y + dy < 0 || y + dy >= V.Height) continue;
                         for (int d = 0; d < V.Depth; d++)
                         {
                             W.Set(x, y, d, V.Get(x + dx, y + dy, d));
@@ -194,13 +194,13 @@ namespace ConvNetCS
             {
                 var W2 = W.CloneAndZero();
 
-                for (int x = 0; x < W.SX; x++)
+                for (int x = 0; x < W.Width; x++)
                 {
-                    for (int y = 0; y < W.SY; y++)
+                    for (int y = 0; y < W.Height; y++)
                     {
                         for (int d = 0; d < W.Depth; d++)
                         {
-                            W2.Set(x, y, d, W.Get(W.SX - x - 1, y, d));
+                            W2.Set(x, y, d, W.Get(W.Width - x - 1, y, d));
 
                         }
                     }
@@ -216,19 +216,19 @@ namespace ConvNetCS
         {
             int dx; int dy; bool fliplr = false;
 
-            dx = (int)Util.Randi(0, V.SX - corp);
+            dx = (int)Util.Randi(0, V.Width - corp);
 
 
-            dy = (int)Util.Randi(0, V.SY - corp); 
+            dy = (int)Util.Randi(0, V.Height - corp); 
             Vol W;
-            if (corp != V.SX || dx != 0 || dy != 0)
+            if (corp != V.Width || dx != 0 || dy != 0)
             {
                 W = new Vol(corp, corp, V.Depth, 0.0f);
                 for (int x = 0; x < corp; x++)
                 {
                     for (int y = 0; y < corp; y++)
                     {
-                        if (x + dx < 0 || x + dx >= V.SX || y + dy < 0 || y + dy >= V.SY) continue;
+                        if (x + dx < 0 || x + dx >= V.Width || y + dy < 0 || y + dy >= V.Height) continue;
                         for (int d = 0; d < V.Depth; d++)
                         {
                             W.Set(x, y, d, V.Get(x + dx, y + dy, d));
@@ -245,13 +245,13 @@ namespace ConvNetCS
             {
                 var W2 = W.CloneAndZero();
 
-                for (int x = 0; x < W.SX; x++)
+                for (int x = 0; x < W.Width; x++)
                 {
-                    for (int y = 0; y < W.SY; y++)
+                    for (int y = 0; y < W.Height; y++)
                     {
                         for (int d = 0; d < W.Depth; d++)
                         {
-                            W2.Set(x, y, d, W.Get(W.SX - x - 1, y, d));
+                            W2.Set(x, y, d, W.Get(W.Width - x - 1, y, d));
 
                         }
                     }

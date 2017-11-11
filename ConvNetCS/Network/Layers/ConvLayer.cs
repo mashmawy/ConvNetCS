@@ -87,8 +87,8 @@ namespace ConvNetCS
             this.Input = V;
             var tempOutput = new Vol(this.OutputWidth | 0, this.OutputHeight | 0, this.OutputDepth | 0, 0.0f);
 
-            var inputWidth = V.SX | 0;
-            var inputHeight = V.SY | 0;
+            var inputWidth = V.Width | 0;
+            var inputHeight = V.Height | 0;
             var xy_stride = this.Stride | 0;
 
             Conv(V, tempOutput, inputWidth, inputHeight, xy_stride);
@@ -103,8 +103,7 @@ namespace ConvNetCS
             var pquery = from num in source.AsParallel()
                          select num;
             pquery.ForAll((d) => ConvFilter(V, tempOutput, inputWidth, inputHeight, xy_stride, d));
-
-
+          
         }
 
         private void ConvFilter(Vol V, Vol tempOutput, int inputWidth, int inputHeight, int xy_stride, int d)
@@ -120,10 +119,10 @@ namespace ConvNetCS
                     // xy_stride
                     // convolve centered at this particular location
                     var a = 0.0;
-                    for (var fy = 0; fy < f.SY; fy++) // for each element in the filter height
+                    for (var fy = 0; fy < f.Height; fy++) // for each element in the filter height
                     {
                         var oy = y + fy; // coordinates in the original input array coordinates
-                        for (var fx = 0; fx < f.SX; fx++) // for each element in the filter width
+                        for (var fx = 0; fx < f.Width; fx++) // for each element in the filter width
                         {
                             //x is current width element of the output
                             //fx is the current width element of the filter
@@ -136,7 +135,7 @@ namespace ConvNetCS
                                     // avoid function call overhead (x2) for efficiency, compromise modularity :(
                                     //filter (fx,fy,fd) *
                                     //input (ox,oy,fd)
-                                    a += f.W[((f.SX * fy) + fx) * f.Depth + fd] *
+                                    a += f.W[((f.Width * fy) + fx) * f.Depth + fd] *
                                         V.W[((inputWidth * oy) + ox) * V.Depth + fd];
                                 }
                             }
@@ -148,12 +147,14 @@ namespace ConvNetCS
             }
         }
 
+        
+   
         public void Backward()
         {
             var V = this.Input;
             V.DW = new float[V.W.Length];  
-            var inputWidth = V.SX | 0;
-            var inputHeight = V.SY | 0;
+            var inputWidth = V.Width | 0;
+            var inputHeight = V.Height | 0;
             var xy_stride = this.Stride | 0;
 
             for (var d = 0; d < this.OutputDepth; d++)
@@ -169,10 +170,10 @@ namespace ConvNetCS
 
                         // convolve centered at this particular location
                         var chain_grad = this.Output.Get_Grad(ax, ay, d); // gradient from above, from chain rule
-                        for (var fy = 0; fy < f.SY; fy++)
+                        for (var fy = 0; fy < f.Height; fy++)
                         {
                             var oy = y + fy; // coordinates in the original input array coordinates
-                            for (var fx = 0; fx < f.SX; fx++)
+                            for (var fx = 0; fx < f.Width; fx++)
                             {
                                 var ox = x + fx;
                                 if (oy >= 0 && oy < inputHeight && ox >= 0 && ox < inputWidth) // check if oy not <0 or oy > input height
@@ -183,7 +184,7 @@ namespace ConvNetCS
                                         //V(ox,oy,fd)
                                         //f(fx,fy,fd)
                                         var ix1 = ((inputWidth * oy) + ox) * V.Depth + fd;
-                                        var ix2 = ((f.SX * fy) + fx) * f.Depth + fd;
+                                        var ix2 = ((f.Width * fy) + fx) * f.Depth + fd;
                                         f.DW[ix2] += V.W[ix1] * chain_grad;
                                         V.DW[ix1] += f.W[ix2] * chain_grad;
                                     }

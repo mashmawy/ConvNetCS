@@ -11,9 +11,7 @@ namespace ConvNetCS
 
         int InputDepth { get; set; }
         int InputWidth { get; set; }
-        int InputHeight { get; set; }
-
-
+        int InputHeight { get; set; } 
 
         int OutputDepth { get; set; }
         int OutputWidth { get; set; }

@@ -67,34 +67,24 @@ namespace ConvNetCS
             this.input = V;
             var A = new Vol(1, 1, this.OutputDepth, 0.0f);
             var Vw = V.W;
-            Product(A, Vw);
+           
+            for (int i = 0; i < this.OutputDepth; i++)
+            {
+
+                var a = 0.0f;
+                var wi = this.Filters[i].W;
+                for (var d = 0; d < this.num_inputs; d++)
+                {
+                    a += Vw[d] * wi[d];
+                }
+                a += this.Biases.W[i];
+                A.W[i] = a;
+            }
             this.Output = A;
             return this.Output;
         }
 
-        private void Product(Vol A, float[] Vw)
-        {
-
-
-            var source = Enumerable.Range(0, this.OutputDepth);
-            var pquery = from num in source.AsParallel()
-                         select num;
-            pquery.ForAll((i) => MulChannel(A, Vw, i));
-
-
-        }
-
-        private void MulChannel(Vol A, float[] Vw, int i)
-        {
-            var a = 0.0f;
-            var wi = this.Filters[i].W;
-            for (var d = 0; d < this.num_inputs; d++)
-            {
-                a += Vw[d] * wi[d];  
-            }
-            a += this.Biases.W[i];
-            A.W[i] = a;
-        }
+       
 
         public void Backward()
         {

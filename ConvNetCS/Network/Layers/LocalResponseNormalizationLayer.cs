@@ -50,7 +50,7 @@ namespace ConvNetCS
         private void DLRN(Vol V, float n2)
         {
 
-            var source = Enumerable.Range(0, V.SX);
+            var source = Enumerable.Range(0, V.Width);
             var pquery = from num in source.AsParallel()
                          select num;
             pquery.ForAll((x) => DLRNforWidth(V, n2, x));
@@ -59,7 +59,7 @@ namespace ConvNetCS
 
         private void DLRNforWidth(Vol V, float n2, int x)
         {
-            for (var y = 0; y < V.SY; y++)
+            for (var y = 0; y < V.Height; y++)
             {
                 for (var i = 0; i < V.Depth; i++)
                 {
@@ -100,7 +100,7 @@ namespace ConvNetCS
 
         private void LRN(Vol V, Vol A, float n2)
         {
-            var source = Enumerable.Range(0, V.SX);
+            var source = Enumerable.Range(0, V.Width);
             var pquery = from num in source.AsParallel()
                          select num;
             pquery.ForAll((x) => LRNforWidth(V, A, n2, x));
@@ -109,7 +109,7 @@ namespace ConvNetCS
 
         private void LRNforWidth(Vol V, Vol A, float n2, int x)
         {
-            for (var y = 0; y < V.SY; y++)
+            for (var y = 0; y < V.Height; y++)
             {
                 for (var i = 0; i < V.Depth; i++)
                 {
