@@ -89,66 +89,61 @@ namespace ConvNetCS
 
             var inputWidth = V.Width | 0;
             var inputHeight = V.Height | 0;
-            var xy_stride = this.Stride | 0;
-
-            Conv(V, tempOutput, inputWidth, inputHeight, xy_stride);
+            var xy_stride = this.Stride | 0; 
+            for (int d = 0; d < this.OutputDepth; d++)
+            {
+                ConvFilter(V, tempOutput, inputWidth, inputHeight, xy_stride, d);
+            }  
             this.Output = tempOutput;
             return this.Output;
         }
-
-        private void Conv(Vol V, Vol tempOutput, int inputWidth, int inputHeight, int xy_stride)
-        {
-
-            var source = Enumerable.Range(0, this.OutputDepth);
-            var pquery = from num in source.AsParallel()
-                         select num;
-            pquery.ForAll((d) => ConvFilter(V, tempOutput, inputWidth, inputHeight, xy_stride, d));
-          
-        }
-
+ 
         private void ConvFilter(Vol V, Vol tempOutput, int inputWidth, int inputHeight, int xy_stride, int d)
         {
+            var source = Enumerable.Range(0, this.OutputHeight);
+            var pquery = from num in source.AsParallel()
+                         select num;
+            pquery.ForAll((ay) => ConvOverRows(V, tempOutput, inputWidth, inputHeight, xy_stride, d,  ay));
+
+        }
+
+        private void ConvOverRows(Vol V, Vol tempOutput, int inputWidth, int inputHeight, int xy_stride, int d, int ay)
+        {
+            var y = (-this.Pad | 0) + (xy_stride * ay);
             var f = this.Filters[d];
-            var x = -this.Pad | 0;
-            var y = -this.Pad | 0;
-            for (int ay = 0; ay < this.OutputHeight; y += xy_stride, ay++)// for each out height
+            for (var ax = 0; ax < this.OutputWidth; ax++) // for each out width
             {
-                x = -this.Pad | 0;
-                for (var ax = 0; ax < this.OutputWidth; x += xy_stride, ax++) // for each out width
+                var x = (-this.Pad | 0)+ (xy_stride * ax);  
+                // convolve centered at this particular location
+                var a = 0.0;
+                for (var fy = 0; fy < f.Height; fy++) // for each element in the filter height
                 {
-                    // xy_stride
-                    // convolve centered at this particular location
-                    var a = 0.0;
-                    for (var fy = 0; fy < f.Height; fy++) // for each element in the filter height
+                    var oy = y+ fy; // coordinates in the original input array coordinates
+                    for (var fx = 0; fx < f.Width; fx++) // for each element in the filter width
                     {
-                        var oy = y + fy; // coordinates in the original input array coordinates
-                        for (var fx = 0; fx < f.Width; fx++) // for each element in the filter width
+                        //x is current width element of the output
+                        //fx is the current width element of the filter
+                        var ox = x + fx;
+                        if (oy >= 0 && oy < inputHeight && ox >= 0 && ox < inputWidth)
                         {
-                            //x is current width element of the output
-                            //fx is the current width element of the filter
-                            var ox = x + fx;
-                            if (oy >= 0 && oy < inputHeight && ox >= 0 && ox < inputWidth)
+                            for (var fd = 0; fd < f.Depth; fd++) // for each filter depth or input depth
                             {
-                                for (var fd = 0; fd < f.Depth; fd++) // for each filter depth or input depth
-                                {
-                                    // multiply filter pixel by image pixel and add (shared weight filter)
-                                    // avoid function call overhead (x2) for efficiency, compromise modularity :(
-                                    //filter (fx,fy,fd) *
-                                    //input (ox,oy,fd)
-                                    a += f.W[((f.Width * fy) + fx) * f.Depth + fd] *
-                                        V.W[((inputWidth * oy) + ox) * V.Depth + fd];
-                                }
+                                // multiply filter pixel by image pixel and add (shared weight filter)
+                                // avoid function call overhead (x2) for efficiency, compromise modularity :(
+                                //filter (fx,fy,fd) *
+                                //input (ox,oy,fd)
+                                a += f.W[((f.Width * fy) + fx) * f.Depth + fd] *
+                                    V.W[((inputWidth * oy) + ox) * V.Depth + fd];
                             }
                         }
                     }
-                    a += this.Biases.W[d];
-                    tempOutput.Set(ax, ay, d, (float)a);
                 }
+                a += this.Biases.W[d];
+                
+                tempOutput.Set(ax, ay, d, (float)a);
             }
         }
-
-        
-   
+         
         public void Backward()
         {
             var V = this.Input;

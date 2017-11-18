@@ -60,6 +60,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Models\VGG16.cs" />
     <Compile Include="Network\ILayer.cs" />
     <Compile Include="Network\ILossLayer.cs" />
     <Compile Include="Network\Layers\ConvLayer.cs" />
@@ -83,6 +84,14 @@
     <Compile Include="QLearn\Window.cs" />
     <Compile Include="Tools\Util.cs" />
     <Compile Include="Tools\Vol.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Models\ImageNetLabels.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Models\Places365Labels.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

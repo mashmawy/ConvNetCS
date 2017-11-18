@@ -71,48 +71,51 @@ namespace ConvNetCS
 
         private void Conv(Vol V, bool is_training, Vol A)
         {
-
-            var source = Enumerable.Range(0, this.OutputDepth);
-            var pquery = from num in source.AsParallel()
-                         select num;
-            pquery.ForAll((d) => ConvFilter(V, is_training, A,  d));
+            var n = 0; // a counter for switches
+            for (int d = 0; d < this.OutputDepth; d++)
+            {
+                for (var ax = 0; ax < this.OutputWidth; ax++)
+                {
+                    var x = -this.Pad;
+                    x += (this.Stride * ax);
+                    for (var ay = 0; ay < this.OutputHeight;  ay++)
+                    {
+                        var y = -this.Pad; 
+                        y += (this.Stride * ay); 
+                        // convolve centered at this particular location
+                        float a = -99999; // hopefully small enough ;\
+                        var winx = -1; var winy = -1;
+                        for (var fx = 0; fx < this.KernelWidth; fx++)
+                        {
+                            for (var fy = 0; fy < this.KernelHeight; fy++)
+                            {
+                                var oy = y + fy;
+                                var ox = x + fx;
+                                if (oy >= 0 && oy < V.Height && ox >= 0 && ox < V.Width)
+                                {
+                                    var v = V.Get(ox, oy, d);
+                                    // perform max pooling and store pointers to where
+                                    // the max came from. This will speed up backprop 
+                                    // and can help make nice visualizations in future
+                                    if (v > a) { a = v; winx = ox; winy = oy; }
+                                }
+                            }
+                        }
+                        this.Switchx[n] = winx;
+                        this.Switchy[n] = winy;
+                        n++;
+                        A.Set(ax, ay, d, a);
+                    }
+                }
+            }
+            //var source = Enumerable.Range(0, this.OutputDepth);
+            //var pquery = from num in source.AsParallel()
+            //             select num;
+          //  pquery.ForAll((d) => );
            
         }
 
-        private void ConvFilter(Vol V, bool is_training, Vol A,  int d)
-        {
-            var x = -this.Pad;
-            var y = -this.Pad;
-            for (var ax = 0; ax < this.OutputWidth; x += this.Stride, ax++)
-            {
-                y = -this.Pad;
-                for (var ay = 0; ay < this.OutputHeight; y += this.Stride, ay++)
-                {
-
-                    // convolve centered at this particular location
-                    float a = -99999; // hopefully small enough ;\
-                    var winx = -1; var winy = -1;
-                    for (var fx = 0; fx < this.KernelWidth; fx++)
-                    {
-                        for (var fy = 0; fy < this.KernelHeight; fy++)
-                        {
-                            var oy = y + fy;
-                            var ox = x + fx;
-                            if (oy >= 0 && oy < V.Height && ox >= 0 && ox < V.Width)
-                            {
-                                var v = V.Get(ox, oy, d);
-                                // perform max pooling and store pointers to where
-                                // the max came from. This will speed up backprop 
-                                // and can help make nice visualizations in future
-                                if (v > a) { a = v; winx = ox; winy = oy; }
-                            }
-                        }
-                    }
-
-                    A.Set(ax, ay, d, a);
-                }
-            }
-        }
+       
 
         public void Backward()
         {

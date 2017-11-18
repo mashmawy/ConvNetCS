@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,6 +14,9 @@ namespace ConvNetCS
         public List<ILayer> Layers { get; set; }
         public ILossLayer LossLayer { get; set; }
         public List<Vol> others = new List<Vol>();
+         
+        public event EventHandler ForwardLayer ;
+
         public Network()
         {
             Layers = new List<ILayer>();
@@ -22,8 +27,13 @@ namespace ConvNetCS
             var act = this.Layers[0].Forward(V, is_training);
             for (int i = 1; i < this.Layers.Count; i++)
             {
+                 
                 act = this.Layers[i].Forward(act, is_training);
+                if (this.ForwardLayer!=null)
+                {
+                    this.ForwardLayer(this.Layers[i],new EventArgs());
 
+                }
                  
 
 
@@ -103,21 +113,11 @@ namespace ConvNetCS
             return maxi;
         }
 
-        public List<int> GetTop5Prediction()
+        public Dictionary<int,float> GetTop5Prediction()
         {
-            List<int> res = new List<int>(5);
+            Dictionary<int, float> res = new Dictionary<int,float>(5);
             var s = this.LossLayer;
-            var p = s.Output.W;
-            //var maxv = p[0];
-            //var maxi = 0;
-            //for (int i = 1; i < p.Length; i++)
-            //{
-            //    if (p[i] > maxv)
-            //    {
-            //        maxv = p[i];
-            //        maxi = i;
-            //    }
-            //}
+            var p = s.Output.W;  
             for (int j = 0; j < 5; j++)
             {
                  
@@ -125,13 +125,13 @@ namespace ConvNetCS
                 var maxv = 0.0f;
                 for (int i = 0; i < p.Length; i++)
                 {
-                    if (p[i] > maxv && !res.Contains(i))
+                    if (p[i] > maxv && !res.Keys.Contains(i))
                     {
                         maxv = p[i];
                         maxi = i;
                     }
                 }
-                res.Add(maxi);
+                res.Add(maxi,maxv);
             }
             return res;
         }
@@ -153,7 +153,19 @@ namespace ConvNetCS
             return maxi;
         }
 
+        public void Save(string path)
+        {
+            FileStream fs = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            BinaryFormatter bf = new BinaryFormatter();
+              bf.Serialize(fs,this) ;
+        }
 
+        public static Network Load(string path)
+        {
+            FileStream fs = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            BinaryFormatter bf = new BinaryFormatter();
+            return  bf.Deserialize(fs) as Network;
+        }
       
     }
 }
