@@ -60,7 +60,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Models\VGG16.cs" />
     <Compile Include="Network\ILayer.cs" />
     <Compile Include="Network\ILossLayer.cs" />
     <Compile Include="Network\Layers\ConvLayer.cs" />
@@ -84,6 +83,7 @@
     <Compile Include="QLearn\Window.cs" />
     <Compile Include="Tools\Util.cs" />
     <Compile Include="Tools\Vol.cs" />
+    <Compile Include="Models\VGG16.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Models\ImageNetLabels.txt">
