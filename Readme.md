@@ -22,9 +22,8 @@ the network can be built from several layers including :
 
 Load pretrained  models from PlayWithVGG project and start visulaize features.
 
-# Notes!
-  - The project target x64 cpu by default.
-  - run without debuging to boost the performance.
+# Notes! 
+  - run on release mode without debuging to boost the performance.
   - all the pretrained models is converted from the original caffe model and the licence of the original author is applied.
 
 License
