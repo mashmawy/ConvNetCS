@@ -34,7 +34,7 @@ namespace ConvNetCS
         public Vol Input { get; set; }
         public Vol Output { get; set; }
 
-        public ConvLayer(int filters, int filtersize, int inputDepth, int inputSize )
+        public ConvLayer(int filters, int filtersize, int inputDepth, int inputSize)
         {
             Init(filters, filtersize, filtersize,
                 inputDepth, inputSize, inputSize, 1, 2, 0, 1, 0.1f);
@@ -51,7 +51,7 @@ namespace ConvNetCS
             int inputHeight, int inputWidth,
             int stride, int pad, float l1_decay, float l2_decay, float bais_pref)
         {
-            Init(filters, filterWidth, filterHeight, 
+            Init(filters, filterWidth, filterHeight,
                 inputDepth, inputHeight, inputWidth, stride, pad, l1_decay, l2_decay, bais_pref);
 
         }
@@ -89,21 +89,21 @@ namespace ConvNetCS
 
             var inputWidth = V.Width | 0;
             var inputHeight = V.Height | 0;
-            var xy_stride = this.Stride | 0; 
+            var xy_stride = this.Stride | 0;
             for (int d = 0; d < this.OutputDepth; d++)
             {
                 ConvFilter(V, tempOutput, inputWidth, inputHeight, xy_stride, d);
-            }  
+            }
             this.Output = tempOutput;
             return this.Output;
         }
- 
+
         private void ConvFilter(Vol V, Vol tempOutput, int inputWidth, int inputHeight, int xy_stride, int d)
         {
             var source = Enumerable.Range(0, this.OutputHeight);
             var pquery = from num in source.AsParallel()
                          select num;
-            pquery.ForAll((ay) => ConvOverRows(V, tempOutput, inputWidth, inputHeight, xy_stride, d,  ay));
+            pquery.ForAll((ay) => ConvOverRows(V, tempOutput, inputWidth, inputHeight, xy_stride, d, ay));
 
         }
 
@@ -113,12 +113,12 @@ namespace ConvNetCS
             var f = this.Filters[d];
             for (var ax = 0; ax < this.OutputWidth; ax++) // for each out width
             {
-                var x = (-this.Pad | 0)+ (xy_stride * ax);  
+                var x = (-this.Pad | 0) + (xy_stride * ax);
                 // convolve centered at this particular location
                 var a = 0.0;
                 for (var fy = 0; fy < f.Height; fy++) // for each element in the filter height
                 {
-                    var oy = y+ fy; // coordinates in the original input array coordinates
+                    var oy = y + fy; // coordinates in the original input array coordinates
                     for (var fx = 0; fx < f.Width; fx++) // for each element in the filter width
                     {
                         //x is current width element of the output
@@ -139,15 +139,15 @@ namespace ConvNetCS
                     }
                 }
                 a += this.Biases.W[d];
-                
+
                 tempOutput.Set(ax, ay, d, (float)a);
             }
         }
-         
+
         public void Backward()
         {
             var V = this.Input;
-            V.DW = new float[V.W.Length];  
+            V.DW = new float[V.W.Length];
             var inputWidth = V.Width | 0;
             var inputHeight = V.Height | 0;
             var xy_stride = this.Stride | 0;
@@ -212,7 +212,7 @@ namespace ConvNetCS
                 Grads = this.Biases.DW,
                 l1_decay_mul = 0.0f,
                 l2_decay_mul = 0.0f
-            }); 
+            });
             return response;
         }
 

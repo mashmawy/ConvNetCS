@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvNetExample", "ConvNetEx
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{ED4D57D3-7A3D-4948-8E5F-98FC8A82AC6B}"
 	ProjectSection(SolutionItems) = preProject
-		Readme.txt = Readme.txt
+		Readme.md = Readme.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeepQLearnExample", "DeepQLearnExample\DeepQLearnExample.csproj", "{B6D8BBCE-2AE9-4B9D-900D-176FA5D2BC8B}"
@@ -89,7 +89,8 @@ Global
 		{46E6F5CF-2E50-46D7-AFB2-7D8B475E216C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{46E6F5CF-2E50-46D7-AFB2-7D8B475E216C}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{46E6F5CF-2E50-46D7-AFB2-7D8B475E216C}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{46E6F5CF-2E50-46D7-AFB2-7D8B475E216C}.Release|x64.ActiveCfg = Release|Any CPU
+		{46E6F5CF-2E50-46D7-AFB2-7D8B475E216C}.Release|x64.ActiveCfg = Release|x64
+		{46E6F5CF-2E50-46D7-AFB2-7D8B475E216C}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

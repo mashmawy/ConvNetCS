@@ -42,9 +42,9 @@
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-            this.PredictionTimeLabel = new System.Windows.Forms.ToolStripStatusLabel();
-            this.PredictionProgress = new System.Windows.Forms.ToolStripProgressBar();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.PredictionProgress = new System.Windows.Forms.ToolStripProgressBar();
+            this.PredictionTimeLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
@@ -181,21 +181,21 @@
             this.statusStrip1.TabIndex = 13;
             this.statusStrip1.Text = "statusStrip1";
             // 
-            // PredictionTimeLabel
+            // toolStripStatusLabel1
             // 
-            this.PredictionTimeLabel.Name = "PredictionTimeLabel";
-            this.PredictionTimeLabel.Size = new System.Drawing.Size(0, 17);
+            this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
+            this.toolStripStatusLabel1.Size = new System.Drawing.Size(52, 17);
+            this.toolStripStatusLabel1.Text = "Progress";
             // 
             // PredictionProgress
             // 
             this.PredictionProgress.Name = "PredictionProgress";
             this.PredictionProgress.Size = new System.Drawing.Size(100, 16);
             // 
-            // toolStripStatusLabel1
+            // PredictionTimeLabel
             // 
-            this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            this.toolStripStatusLabel1.Size = new System.Drawing.Size(52, 17);
-            this.toolStripStatusLabel1.Text = "Progress";
+            this.PredictionTimeLabel.Name = "PredictionTimeLabel";
+            this.PredictionTimeLabel.Size = new System.Drawing.Size(0, 17);
             // 
             // label2
             // 

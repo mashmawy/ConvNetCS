@@ -56,7 +56,9 @@ namespace PlayWithVGG
             var resp = ofd.ShowDialog();
             if (resp == System.Windows.Forms.DialogResult.OK)
             {
+                counter = 0;
                 this.PredictionProgress.Value = 0;
+                this.PredictionProgress.ProgressBar.Value = 0;
                 var x = LoadImage(ofd);
                 predictionThread = new Thread(new ParameterizedThreadStart(Predict));
                 predictionThread.Start(x);
@@ -73,9 +75,7 @@ namespace PlayWithVGG
             var time = end.Subtract(start).TotalSeconds;
             this.Invoke(new PredictionTimeDeleget(SetTime), time);
             var results = net.GetTop5Prediction();
-            this.Invoke(new DisplayResultsDeleget(DisplayResults), results); 
-
-           
+            this.Invoke(new DisplayResultsDeleget(DisplayResults), results);  
         }
 
         private Vol LoadImage(OpenFileDialog ofd)
@@ -89,7 +89,8 @@ namespace PlayWithVGG
             {
                 for (int j = 0; j < bmp.Height; j++)
                 {
-                    Color clr = bmp.GetPixel(i, j); // Get the color of pixel at position 5,5
+                    Color clr = bmp.GetPixel(i, j); 
+                    //VGG16 required normalization
                     float red = clr.R - 123.68f;
                     float green = clr.G - 116.779f;
                     float blue = clr.B - 103.939f;
@@ -183,7 +184,7 @@ namespace PlayWithVGG
 
                 BrowseButton.Enabled = true;
                 net.ForwardLayer += net_ForwardLayer;
-                this.PredictionProgress.Maximum = net.Layers.Count - 1;
+                this.PredictionProgress.Maximum = net.Layers.Count  ;
             }
         }
         private void openPlaces365ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -196,7 +197,7 @@ namespace PlayWithVGG
                 Labels = ConvNetCS.Models.VGG16.Places365Labels();
                 BrowseButton.Enabled = true;
                 net.ForwardLayer += net_ForwardLayer;
-                this.PredictionProgress.Maximum = net.Layers.Count - 1;
+                this.PredictionProgress.Maximum = net.Layers.Count ;
             }
         }
         int counter = 0;
@@ -245,5 +246,7 @@ namespace PlayWithVGG
         {
 
         }
+
+        
     }
 }
