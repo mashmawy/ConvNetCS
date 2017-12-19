@@ -1,6 +1,6 @@
 # ConvNetCS
  
-ConvNetCS Library is a c# .net Convolution neural network library along with expermintal deepQlearning implementation, based on Andrej Karpathy Convnetj. 
+ConvNetCS Library is a c# .net Convolution neural network library along with expermintal deepQlearning implementation, based on Andrej Karpathy Convnetjs. 
 the network can be built from several layers including :
   - Full Connected Layer
   - Dropout Layer
